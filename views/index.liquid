@@ -1,1 +1,21 @@
-<p>hoi</p>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Portfolio</title>
+</head>
+<body>
+    <h1>Portfolio Items</h1>
+    
+    <div class="grid">
+        {% for item in projects %}
+            <div class="card">
+                <h2>{{ item.name }}</h2>
+                <p>{{ item.description }}</p>
+                <img src="{{ item.image | asset_url }}" alt="{{ item.name }}" style="max-width: 300px;">
+                
+                <p><small>Published: {{ item.date_created }}</small></p>
+            </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

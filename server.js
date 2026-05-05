@@ -1,56 +1,49 @@
-import 'dotenv/config'; // 1. Load variables first
 import express from 'express';
 import { Liquid } from 'liquidjs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import multer from 'multer';
 
-// 2. Now import the db file that uses those variables
-import supabase from './db.js';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-const upload = multer({ storage: multer.memoryStorage() });
+const port = 8000;
+const API_BASE_URL = 'https://api.gijsnagtegaal.nl';
 
-// View Engine Setup
-const engine = new Liquid({ root: path.resolve(__dirname, 'views'), extname: '.liquid' });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const engine = new Liquid({
+    root: path.resolve(__dirname, 'views'), 
+    extname: '.liquid'
+});
+
+engine.registerFilter('asset_url', (id) => {
+    if (!id) return '';
+    return `${API_BASE_URL}/assets/${id}`;
+});
+
 app.engine('liquid', engine.express());
+app.set('views', path.resolve(__dirname, 'views'));
 app.set('view engine', 'liquid');
 
 app.use(express.static('public'));
-app.use(express.urlencoded({ extended: true }));
 
-// --- ROUTES ---
-
+// 4. The Route
 app.get('/', async (req, res) => {
     try {
-        const { data: projects, error } = await supabase
-            .from('projects')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-        if (error) throw error;
-
-        // Change 'index' to 'test' to match test.liquid
-        res.render('test', { projects }); 
-    } catch (error) {
-        console.error("Fetch error:", error);
-        res.status(500).send("Database Error");
-    }
-});
-
-app.get('/test-db', async (req, res) => {
-    try {
-        // Use { count: 'exact' } to get the total number of rows
-        const { count, error } = await supabase
-            .from('projects')
-            .select('*', { count: 'exact', head: true });
+        const response = await fetch(`${API_BASE_URL}/items/portfolio_items`);
         
-        if (error) throw error;
-        res.send(`Database connected! The "projects" table contains ${count} total rows.`);
-    } catch (err) {
-        res.status(500).send(`Connection failed: ${err.message}`);
+        if (!response.ok) throw new Error(`API error: ${response.status}`);
+        
+        const result = await response.json();
+
+        res.render('index', { 
+            projects: result.data 
+        });
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        res.status(500).send('Server Error: ' + error.message);
     }
 });
 
-app.listen(8000, () => console.log('Server running on http://localhost:8000'));
+app.listen(port, () => {
+    console.log(`🚀 Server spinning at http://localhost:${port}`);
+});
