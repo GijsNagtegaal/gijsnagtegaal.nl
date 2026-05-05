@@ -1,0 +1,90 @@
+@font-face {
+    font-family: baloo;
+    src: url(/assets/fonts/baloo2.ttf);
+    font-display: swap;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    line-height: 1.2;
+    box-sizing: border-box;
+    font-family: main;
+    list-style: none;
+}
+
+img, video {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+}
+
+
+
+body {
+
+    /* color-scheme: light dark; */
+    transition: background-color, color, .3s linear;
+
+    margin: 1rem;
+
+    /* --------- font sizes --------- */
+    --paragraph: clamp(1.1rem, 2vw, 1.3rem);
+	--heading-small: clamp(1.2rem, 2vw, 1rem);
+	--heading-medium: clamp(1.4rem, 2.7vw, 2.2rem);
+	--heading-big: clamp(1.6rem, 3vw, 2.7rem);
+
+    /* --------- colors --------- */
+
+    /* main colors */
+    --light-background: light-dark(#F7F7F7, hsl(0, 0%, 12%));
+    --medium-background: light-dark(#a2a2a2, #d6d6d6);
+    --dark-background: light-dark(hsl(0, 0%, 12%), #F7F7F7);
+
+    --light-text: light-dark(#F7F7F7, #1a1a1a);
+    --dark-text: light-dark(#1a1a1a, #F7F7F7);
+    --body-background-green: #fe8b5038;
+
+    /* accent colors */
+    --accent: #43A7FF;
+
+    /* --------- borders --------- */
+    --border-image: 1rem;
+    --border-popover: 1rem;
+    --border-card: .8rem;
+    --border-badge: 2rem;
+    --border-button: .5rem;
+    --border-header: 10rem;
+    --border-round: 100%;
+
+    /* exclusions for light dark */
+    --always-black: hsl(0, 0%, 12%);
+    --always-light: #ffffff;
+
+    background-color: var(--light-background);
+}
+
+h1, h2, h3, h4, h5, h6, span {
+    font-family: baloo;
+    font-weight: 600;
+    font-size: var(--heading-big);
+    color: var(--dark-text);
+}
+
+p,a, button {
+    font-family: baloo;
+    font-weight: 600;
+    font-size: var(--paragraph);
+}
+
+h3, h4 {
+    font-size: var(--heading-medium);
+}
+
+h5, h6 {
+    font-size: var(--heading-small);
+}
+
+span {
+    color: var(--accent);
+}

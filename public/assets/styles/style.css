@@ -1,0 +1,110 @@
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    z-index: 3;
+    top: 1rem;
+    background-color: var(--dark-background);
+    border-radius: var(--border-header);
+    
+    picture {
+        min-width: 1rem;
+        width: 20%;
+        max-width: 4rem;
+    }
+
+    button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        background-color: transparent;
+        width: 30%;
+        color: var(--light-text);
+    }
+}
+
+main.home {
+    section.imgijs {
+        width: 100%;
+        height: fit-content;
+        position: relative;
+
+        h1 {
+            margin-top: 1rem;
+        }
+
+        svg.arrow {
+            position: absolute;
+            top: 10%;
+            left: 0;
+        }
+
+        picture.memo {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        img.memo {
+            min-width: 9.375rem;
+            width: 50%;
+            max-width: 25rem;
+            height: auto;
+        }
+
+        img.techstack {
+            position: absolute;
+            width: 4rem;
+            height: 4rem;
+            padding: .5rem;
+            background-color: var(--dark-background);
+            border-radius: var(--border-badge);
+
+            &.pos-1 {
+                top: 10%;
+                right: 10%;
+                animation: float 4s ease-in-out infinite;
+            }
+
+            &.pos-2 {
+                top: 40%;
+                right: 0%;
+                animation: float 3s ease-in-out infinite;
+            }
+
+            &.pos-3 {
+                top: 70%;
+                right: 5%;
+                animation: float 6s ease-in-out infinite;
+            }
+
+            &.pos-4 {
+                top: 35%;
+                left: 0%;
+                animation: float 6s ease-in-out infinite;
+            }
+
+            &.pos-5 {
+                top: 60%;
+                left: 10%;
+                animation: float 8s ease-in-out infinite;
+            }
+
+            &.pos-6 {
+                top: 85%;
+                left: 5%;
+                animation: float 10s ease-in-out infinite;
+            }
+        }
+    }
+
+    section.about {
+        h2 {
+            margin-top: 2rem;
+        }
+    }
+}
