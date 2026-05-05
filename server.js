@@ -1,9 +1,9 @@
-import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { Liquid } from 'liquidjs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
 
 const API_BASE_URL = process.env.API_BASE_URL;
 
