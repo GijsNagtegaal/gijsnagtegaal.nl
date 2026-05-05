@@ -6,10 +6,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const API_BASE_URL = process.env.API_BASE_URL;
-const API_TOKEN = process.env.API_TOKEN;
 
 const app = express();
-const port = 3000;
+const port = 8000;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,12 +28,6 @@ app.set('views', path.resolve(__dirname, 'views'));
 app.set('view engine', 'liquid');
 
 app.use(express.static('public'));
-
-app.use(cors({
-    origin: 'https://gijsnagtegaal.nl', 
-    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
 
 // 4. The Route
 app.get('/', async (req, res) => {
