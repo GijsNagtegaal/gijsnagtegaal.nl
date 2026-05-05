@@ -58,11 +58,6 @@ main.home {
 
         img.techstack {
             position: absolute;
-            width: 4rem;
-            height: 4rem;
-            padding: .5rem;
-            background-color: var(--dark-background);
-            border-radius: var(--border-badge);
 
             &.pos-1 {
                 top: 10%;
@@ -89,13 +84,13 @@ main.home {
             }
 
             &.pos-5 {
-                top: 60%;
+                top: 55%;
                 left: 10%;
                 animation: float 8s ease-in-out infinite;
             }
 
             &.pos-6 {
-                top: 85%;
+                top: 80%;
                 left: 5%;
                 animation: float 10s ease-in-out infinite;
             }
@@ -105,6 +100,37 @@ main.home {
     section.about {
         h2 {
             margin-top: 2rem;
+        }
+    }
+
+    section.techstack {
+
+        ul {
+            display: flex;
+            margin-block: 1rem;
+            gap: 2rem;
+            overflow-x: scroll;
+            overflow-y: hidden;
+        }
+
+        li {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        img.techstack {
+            width: 7rem;
+            height: 7rem;
+            border-radius: var(--border-round);
+        }
+
+        picture {
+
+            img {
+
+            }
         }
     }
 }

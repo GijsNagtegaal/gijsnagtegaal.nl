@@ -51,7 +51,7 @@ body {
     --border-popover: 1rem;
     --border-card: .8rem;
     --border-badge: 2rem;
-    --border-button: .5rem;
+    --border-button: 1.5rem;
     --border-header: 10rem;
     --border-round: 100%;
 
@@ -87,7 +87,29 @@ span {
     color: var(--accent);
 }
 
-.techstack {
+img.techstack {
     width: 4rem;
     height: 4rem;
+    padding: .5rem;
+    background-color: var(--dark-background);
+    border-radius: var(--border-badge);
+}
+
+a, button {
+    text-decoration: none;
+
+    &.primary {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 12.5rem;
+        width: 100%;
+        max-width: 25rem;
+        margin-block: 1rem;
+        gap: 1rem;
+        padding-block: 1rem;
+        border-radius: var(--border-button);
+        background-color: var(--accent);
+        color: var(--always-light);
+    }
 }
