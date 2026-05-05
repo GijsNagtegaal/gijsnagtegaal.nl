@@ -1,18 +1,6 @@
-const { createClient } = require('@supabase/supabase-js');
+import postgres from 'postgres'
 
-const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_ANON_KEY
-);
+const connectionString = process.env.DATABASE_URL
+const sql = postgres(connectionString)
 
-// Test the connection
-supabase
-    .from('projects')
-    .select('*')
-    .limit(1)
-    .then(({ data, error }) => {
-        if (error) console.error('Connection error:', error);
-        else console.log('Connected:', data);
-    });
-
-module.exports = supabase;
+export default sql

@@ -2,29 +2,34 @@ import express from 'express';
 import { Liquid } from 'liquidjs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import multer from 'multer';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Import separated db file
+import supabase from './db.js'; 
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
+const upload = multer({ storage: multer.memoryStorage() });
 
-const engine = new Liquid({
-    root: path.resolve(__dirname, 'public/views'), 
-    extname: '.liquid'
-});
-
+// View Engine Setup
+const engine = new Liquid({ root: path.resolve(__dirname, 'views'), extname: '.liquid' });
 app.engine('liquid', engine.express());
-app.set('views', path.join(__dirname, '/views')); 
 app.set('view engine', 'liquid');
 
-app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
+app.use(express.urlencoded({ extended: true }));
 
+// --- ROUTES ---
+
+// Fetch from Database
 app.get('/', async (req, res) => {
-    res.render('index'); 
+    const { data: projects, error } = await supabase
+        .from('projects')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) console.error("Fetch error:", error);
+    res.render('index', { projects });
 });
 
-const PORT = process.env.PORT || 8000;
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
+app.listen(8000, () => console.log('Server running on http://localhost:8000'));
