@@ -1,0 +1,27 @@
+{% render 'partials/head.liquid' %}
+{% render 'partials/header.liquid' %}
+
+<main class="blog">
+  <section>
+    <h1>Blog</h1>
+
+    {% if posts and posts.size > 0 %}
+      <ul>
+        {% for post in posts %}
+          <li>
+            <h2>{{ post.title }}</h2>
+            {% if post.description %}
+              <p>{{ post.description }}</p>
+            {% endif %}
+            {% if post.date_created %}
+              <p><small>Published: {{ post.date_created | date: "%b %d, %Y" }}</small></p>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>Nog geen posts.</p>
+    {% endif %}
+  </section>
+</main>
+
