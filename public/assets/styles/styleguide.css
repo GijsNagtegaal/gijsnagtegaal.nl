@@ -75,10 +75,6 @@ p,a, button {
     font-size: var(--paragraph);
 }
 
-h3, h4 {
-    font-size: var(--heading-medium);
-}
-
 h5, h6 {
     font-size: var(--heading-small);
 }
