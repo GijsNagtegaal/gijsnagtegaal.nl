@@ -9,7 +9,9 @@ export function createPortfolioRoutes({ apiClient }) {
       res.render('portfolio', { portfolioItems });
     } catch (error) {
       console.error('Failed to load portfolio data:', error);
-      res.render('portfolio', { portfolioItems: [] });
+      res.render('portfolio', { 
+        portfolioItems: [] 
+      });
     }
   });
 

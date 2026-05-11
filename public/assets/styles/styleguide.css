@@ -43,6 +43,7 @@ body {
 
     /* accent colors */
     --accent: #43A7FF;
+    --accent-header: black;
 
     /* --------- borders --------- */
     --border-image: 1rem;

@@ -30,21 +30,25 @@ main.home {
 
         img.techstack {
             position: absolute;
+            width: 12vw;
+            height: 12vw;
+            max-width: 4rem;
+            max-height: 4rem;
 
             &.pos-1 {
-                top: 10%;
+                top: 20%;
                 right: 10%;
                 animation: float 4s ease-in-out infinite;
             }
 
             &.pos-2 {
-                top: 40%;
+                top: 45%;
                 right: 0%;
                 animation: float 3s ease-in-out infinite;
             }
 
             &.pos-3 {
-                top: 70%;
+                top: 75%;
                 right: 5%;
                 animation: float 6s ease-in-out infinite;
             }
