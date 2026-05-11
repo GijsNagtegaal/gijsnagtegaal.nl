@@ -24,8 +24,6 @@ body {
     /* color-scheme: light dark; */
     transition: background-color, color, .3s linear;
 
-    margin: 1rem;
-
     /* --------- font sizes --------- */
     --paragraph: clamp(1.1rem, 2vw, 1.3rem);
 	--heading-small: clamp(1.2rem, 2vw, 1rem);
@@ -59,6 +57,10 @@ body {
     --always-light: #ffffff;
 
     background-color: var(--light-background);
+}
+
+main {
+    margin: 1rem;
 }
 
 h1, h2, h3, h4, h5, h6, span {

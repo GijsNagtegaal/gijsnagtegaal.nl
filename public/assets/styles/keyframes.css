@@ -4,3 +4,18 @@
     100% { transform: translateY(0px); }
 }
 
+@keyframes shrink-header {
+
+    from {
+        --accent-header: black;
+        height: 6.25rem;
+        background-color: transparent;
+    }
+    to {
+        --accent-header: white;
+        height: 4.25rem;
+        background-color: var(--dark-background); 
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        backdrop-filter: blur(10px);
+    }
+}
