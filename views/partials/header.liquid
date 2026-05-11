@@ -1,19 +1,24 @@
 <header>
-    {% render 'partials/picture.liquid',
-        imagesrc: "/assets/images/logo",
-        width: "300",
-        height: "300",
-        alt: tech.name,
-        class: "round",
-        fetch: "high",
-        loading: "eager"
-    %}
+    <nav>
+        <a href="/">
+            {% render 'partials/picture.liquid',
+                imagesrc: "/assets/images/logo",
+                imagesrc_dark: "/assets/images/logo-dark",
+                width: "300",
+                height: "300",
+                alt: tech.name,
+                class: "round",
+                fetch: "high",
+                loading: "eager"
+            %}
+        </a>
 
-    <button>
-        <!-- menu burger svg -->
-        <svg width="47" height="45" viewBox="0 0 47 45" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5.875 22.5H41.125M5.875 11.25H41.125M5.875 33.75H41.125" stroke="#EAEAEA" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Menu
-    </button>
+        <button>
+            <!-- menu burger svg -->
+            <svg width="47" height="45" viewBox="0 0 47 45" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5.875 22.5H41.125M5.875 11.25H41.125M5.875 33.75H41.125" stroke="var(--dark-text)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <p>Menu</p>
+        </button>
+    </nav>
 </header>

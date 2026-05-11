@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon --watch server --watch views --ext js,liquid,json server.js"
+    "dev": "nodemon --watch routes --watch lib --watch views --ext js,liquid,json server.js"
   },
   "dependencies": {
     "cors": "^2.8.6",

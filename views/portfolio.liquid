@@ -1,0 +1,38 @@
+{% render 'partials/head.liquid' %}
+{% render 'partials/header.liquid' %}
+<main class="portfolio">
+  <section class="portfolio-intro">
+    <h1>Portfolio</h1>
+    <p>Hier zie je een selectie van projecten waar ik aan heb gewerkt.</p>
+  </section>
+
+  <section class="portfolio-items">
+    {% if portfolioItems and portfolioItems.size > 0 %}
+      <ul>
+        {% for item in portfolioItems %}
+          <li class="portfolio-item">
+            <h2>{{ item.title }}</h2>
+            <p>{{ item.description }}</p>
+
+            {% if item.image %}
+              {% render 'partials/picture.liquid',
+                imagesrc: item.image,
+                width: "400",
+                height: "250",
+                alt: item.title,
+                class: "portfolio-image",
+                loading: "lazy"
+              %}
+            {% endif %}
+
+            {% if item.url %}
+              <p><a class="primary" href="{{ item.url }}">Bekijk project</a></p>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>Er zijn momenteel geen portfolio items beschikbaar.</p>
+    {% endif %}
+  </section>
+</main>

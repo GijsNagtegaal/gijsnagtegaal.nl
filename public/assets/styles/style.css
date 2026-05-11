@@ -1,12 +1,41 @@
 header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     position: sticky;
     z-index: 3;
-    top: 1rem;
-    background-color: var(--dark-background);
-    border-radius: var(--border-header);
+    top: 0; /* Changed to 0 for better stickiness, use padding if you need a gap */
+    height: 6.25rem;
+    background-color: transparent;
+    transition: all 0.3s ease;
+
+    /* Modern Chrome/Edge Animation */
+    @supports (animation-timeline: scroll()) {
+        animation: shrink-header linear both;
+        animation-timeline: scroll(root);
+        animation-range: 0px 100px;  
+    }
+
+    &.scrolled {
+        height: 60px;
+        background-color: black;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        backdrop-filter: blur(10px);
+    }
+
+    nav {
+        display: grid;
+        grid-template-columns: 20% 1fr;
+        width: 95%;
+    }
+
+    nav :nth-child(1) {
+        justify-self: start;
+    }
+
+    nav :nth-child(2) {
+        justify-self: end;
+    }
     
     picture {
         min-width: 1rem;
@@ -17,12 +46,20 @@ header {
     button {
         display: flex;
         flex-direction: column;
-        align-items: center;
+        align-items: flex-end;
         justify-content: center;
         border: none;
         background-color: transparent;
-        width: 30%;
-        color: var(--light-text);
+        width: fit-content;
+        color: var(--dark-text);
+
+        svg {
+            fill: var(--dark-text);
+        }
+
+        p {
+            margin-top: -.2rem;
+        }
     }
 }
 
@@ -132,5 +169,19 @@ main.home {
 
             }
         }
+    }
+}
+
+@keyframes shrink-header {
+
+    from {
+        height: 6.25rem;
+        background-color: transparent;
+    }
+    to {
+        height: 60px;
+        background-color: var(--dark-background); 
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        backdrop-filter: blur(10px);
     }
 }
