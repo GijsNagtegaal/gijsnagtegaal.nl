@@ -106,6 +106,28 @@ app.get('/portfolio', async (request, response) => {
     }
 });
 
+// Change '/project/:slug' to '/portfolio/project/:slug'
+app.get('/portfolio/project/:slug', async (request, response) => {
+    try {
+        const slug = request.params.slug;
+        
+        const rawItem = await fetchData(`portfolio_items?filter[slug][_eq]=${slug}`);
+        
+        if (!rawItem || rawItem.length === 0) {
+            return response.status(404).send('Project niet gevonden');
+        }
+
+        const project = processItems(rawItem)[0];
+
+        response.render('project-detail.liquid', {
+            project: project
+        });
+    } catch (error) {
+        console.error('Project route error:', error);
+        response.status(500).send('Interne server fout');
+    }
+});
+
 app.post('/contact', (request, response) => {
     response.json({ success: true });
 });

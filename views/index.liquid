@@ -4,6 +4,7 @@
 
     <!-- section with me and my tech stack -->
     <section class="imgijs">
+
         <h1>Hoi! ik ben <span> Gijs Nagtegaal </span></h1>
 
         {% render 'partials/picture.liquid',
@@ -73,26 +74,14 @@
     </section>
 
     <!-- most recent work -->
-    <section>
+    <section class="recentwork">
         <h3>Meest <span> recente projecten </span> </h3>
-        {% for item in projects %}
-            <h3>{{ item.title }}</h3>
-            <p>{{ item.description }}</p>
-            
-            {% if item.image %}
-                {% render 'partials/picture.liquid',
-                    imagesrc: item.image,
-                    width: "275",
-                    height: "140",
-                    alt: item.title,
-                    class: "landscape",
-                    loading: "lazy"
-                %}
-            {% endif %}
-            <p><small>Published: {{ item.date_created | date: "%b %d, %Y" }}</small></p>
+        {% for project in projects %}
+            {% render 'partials/portfolio-item.liquid', project: project %}
         {% else %}
-            <p>No projects found.</p>
+            <p>Geen projecten gevonden.</p>
         {% endfor %}
     </section>
+
 
 </main>

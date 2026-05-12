@@ -36,7 +36,6 @@
     }
 
     a {
-        color: var(--accent-header);
         transition: color 0.5s ease;
     }
 }
@@ -56,7 +55,11 @@ main.home {
         }
 
         h1 {
-            margin-bottom: 6rem;
+            margin-bottom: 1rem;
+
+            @media (min-width: 800px) {
+                margin-bottom: 6rem;
+            }
         }
 
         svg.arrow {
@@ -123,7 +126,7 @@ main.home {
             }
 
             &.pos-4 {
-                top: 35%;
+                top: 30%;
                 left: 0%;
                 animation: float 6s ease-in-out infinite;
 
@@ -173,8 +176,12 @@ main.home {
     }
 
     section.techstack {
-        margin-top: 30dvh;
+        margin-top: 3rem;
         overflow-x: scroll;
+
+        @media (min-width: 800px) {
+            margin-top: 30dvh;
+        }
 
         ul {
             display: flex;
@@ -202,5 +209,11 @@ main.home {
 
             }
         }
+    }
+
+    section.recentwork {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
     }
 }

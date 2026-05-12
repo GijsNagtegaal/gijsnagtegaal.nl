@@ -21,7 +21,7 @@
 
 @keyframes shrink-header {
     from {
-        --accent-header: black;
+        --accent-header: light-dark(#1a1a1a, #F7F7F7);
         --background-header: var(--light-background);
         height: 6.25rem;
         background-color: var(--background-header);
@@ -29,7 +29,7 @@
     }
     
     to {
-        --accent-header: white;
+        --accent-header: light-dark(#F7F7F7, #F7F7F7);
         --background-header: rgba(0, 0, 0, 0.899); 
         height: 4.75rem;
         background-color: var(--background-header);

@@ -132,11 +132,6 @@ header.topnav {
         align-self: center;
     }
     
-    #mobile-menu a {
-        color: var(--accent-header);
-        transition: color 0.5s ease;
-    }
-    
     svg.logo {
         min-width: 1rem;
         width: 100%;

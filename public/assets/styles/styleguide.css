@@ -25,7 +25,7 @@ img, video {
 
 body {
 
-    /* color-scheme: light dark; */
+    color-scheme: light dark;
     transition: background-color, color, .3s linear;
 
     /* --------- font sizes --------- */
@@ -46,8 +46,10 @@ body {
     --body-background-green: #fe8b5038;
 
     /* accent colors */
-    --accent: #43A7FF;
-    --accent-header: black;
+    --accent: light-dark(#2C3E50, #43A7FF);;
+    --accent-card: light-dark(#2C3E50, #43A7FF);
+    --accent-button: light-dark(#43A7FF, #2C3E50);
+    --accent-header: light-dark(#1a1a1a, #F7F7F7);
 
     /* --------- borders --------- */
     --border-image: 1rem;

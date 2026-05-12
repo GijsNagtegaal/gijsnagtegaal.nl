@@ -1,0 +1,32 @@
+{% render 'partials/head.liquid' %}
+{% render 'partials/header.liquid', currentPath: currentPath %}
+
+<main>
+    <section>
+        <h3>{{ project.type_site }} voor {{ project.Opdrachtgever }}</h3>
+        <p>{{ project.opdracht }}</p>
+
+        <article class="tag-container">
+            {% for tag in project.tags %}
+                <span class="tag">{{ tag }}</span>
+            {% endfor %}
+        </article>
+        
+        {% if project.image %}
+            {% render 'partials/picture.liquid',
+                imagesrc: project.image,
+                width: "800",
+                height: "450",
+                alt: project.Opdrachtgever,
+                class: "landscape",
+                loading: "eager"
+            %}
+        {% endif %}
+
+        <div class="description">
+            {{ project.description }}
+        </div>
+
+        <a href="/portfolio">Terug naar overzicht</a>
+    </section>
+</main>
