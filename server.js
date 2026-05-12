@@ -1,62 +1,118 @@
 import express from 'express';
-import path from 'path';
-import dotenv from 'dotenv';
 import { Liquid } from 'liquidjs';
-import { registerMiddleware } from './lib/middleware.js';
-import { createApiClient } from './lib/apiClient.js';
-import { registerRoutes } from './routes/index.js';
+import { fileURLToPath } from 'url';
+import path from 'path';
+import cookieParser from 'cookie-parser';
+import methodOverride from 'method-override';
 
-dotenv.config({ path: path.resolve('.env') });
+// ─── CONSTANTS ────────────────────────────────────────────────────────────────
 
-const port = Number(process.env.PORT) || 8000;
+const API_BASE = 'https://api.gijsnagtegaal.nl/items';
+const ASSET_BASE = 'https://api.gijsnagtegaal.nl/assets';
+const PLACEHOLDER_IMAGE = '/assets/images/alium.webp';
 
-function getApiBaseUrl() {
-  const rawUrl = process.env.API_BASE_URL || 'https://api.gijsnagtegaal.nl';
-  return String(rawUrl).replace(/\/$/, '');
-}
-
-function registerLiquidViewEngine(app) {
-  const viewsDir = path.resolve('views');
-  const engine = new Liquid({
-    root: viewsDir,
-    extname: '.liquid',
-    cache: process.env.NODE_ENV === 'production',
-  });
-
-  app.engine('liquid', engine.express());
-  app.set('views', viewsDir);
-  app.set('view engine', 'liquid');
-}
-
-function registerErrorHandlers(app) {
-  app.use((req, res) => {
-    res.status(404).send('Not Found');
-  });
-
-
-  app.use((err, req, res, next) => {
-    console.error('❌ ERROR:', err);
-    res.status(500).send('Internal Server Error');
-  });
-}
+// ─── APP SETUP ──────────────────────────────────────────────────────────────────
 
 const app = express();
-registerLiquidViewEngine(app);
-registerMiddleware(app, { publicDir: 'public' });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const apiClient = createApiClient({ apiBaseUrl: getApiBaseUrl() });
-registerRoutes(app, { apiClient });
-registerErrorHandlers(app);
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
+app.use(methodOverride('_method'));
+app.use('/gsap', express.static(path.join(__dirname, 'node_modules/gsap/dist/')));
 
-const server = app.listen(port, () => {
+const engine = new Liquid();
+app.engine('liquid', engine.express());
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'liquid');
 
-  console.log(`🚀 Site running at http://localhost:${port}`);
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+
+/**
+ * Converts an asset ID or object into a full URL string.
+ */
+const assetUrl = (asset) => {
+    if (!asset) return PLACEHOLDER_IMAGE;
+    const id = typeof asset === 'object' ? (asset.id || asset.memoji) : asset;
+    return (id && typeof id === 'string')
+        ? `${ASSET_BASE}/${id}`
+        : PLACEHOLDER_IMAGE;
+};
+
+/**
+ * Standard fetch wrapper for the Directus API.
+ */
+const fetchData = async (endpoint) => {
+    try {
+        const response = await fetch(`${API_BASE}/${endpoint}`);
+        const result = await response.json();
+        return result.data;
+    } catch (e) {
+        console.error(`Fetch error for ${endpoint}:`, e);
+        return null;
+    }
+};
+
+/**
+ * Maps through raw API data and ensures the 'image' field is a valid URL.
+ */
+const processItems = (items) => {
+    if (!items) return [];
+    const array = Array.isArray(items) ? items : [items];
+    return array.map(item => ({
+        ...item,
+        image: assetUrl(item.image)
+    }));
+};
+
+// ─── GLOBAL MIDDLEWARE ────────────────────────────────────────────────────────
+
+app.use((request, response, next) => {
+    response.locals.currentPath = request.path;
+    next();
 });
 
-server.on('error', (error) => {
+// ─── ROUTES ───────────────────────────────────────────────────────────────────
 
-  console.error('Server failed to start:', error);
-  process.exitCode = 1;
+app.get('/', async (request, response) => {
+    try {
+        const [rawProjects, rawTech] = await Promise.all([
+            fetchData('portfolio_items'),
+            fetchData('tech_stack'),
+        ]);
+
+        response.render('index.liquid', {
+            projects: processItems(rawProjects),
+            techStack: processItems(rawTech)
+        });
+    } catch (error) {
+        console.error('Home route error:', error);
+        response.status(500).send('Server error');
+    }
 });
 
-server.ref();
+app.get('/portfolio', async (request, response) => {
+    try {
+        const rawItems = await fetchData('portfolio_items');
+        response.render('portfolio.liquid', {
+            portfolioItems: processItems(rawItems)
+        });
+    } catch (error) {
+        console.error('Portfolio route error:', error);
+        response.status(500).send('Server error');
+    }
+});
+
+app.post('/contact', (request, response) => {
+    response.json({ success: true });
+});
+
+// ─── SERVER START ─────────────────────────────────────────────────────────────
+
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, () => {
+    console.log(`🚀 Server started: http://localhost:${PORT}`);
+});

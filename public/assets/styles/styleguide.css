@@ -66,6 +66,14 @@ body {
 
 main {
     margin: 1rem;
+
+    @media (min-width: 800px) {
+        margin: 2rem;
+    }
+
+    @media (min-width: 1200px) {
+        margin: 4rem;
+    }
 }
 
 h1, h2, h3, h4, h5, h6, span {
@@ -94,7 +102,7 @@ img.techstack {
     height: 4rem;
     padding: .5rem;
     background-color: var(--dark-background);
-    border-radius: var(--border-badge);
+    border-radius: var(--border-round);
 }
 
 a, button {

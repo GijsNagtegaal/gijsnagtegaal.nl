@@ -28,6 +28,7 @@ header.topnav {
         display: grid;
         grid-template-columns: 20% 1fr;
         width: 95%;
+        color: var(--accent-header);
 
         @media (min-width: 600px) {
             display: none;
@@ -44,7 +45,7 @@ header.topnav {
             display: flex;
         }
 
-        a {
+        a:not(.logo) {
             padding-left: .5rem;
             font-size: var(--heading-big);
         }
@@ -72,6 +73,7 @@ header.topnav {
         grid-template-columns: 15% 1fr 15%;
         width: 95%;
         justify-self: center;
+        color: var(--accent-header);
 
         @media (min-width: 600px) {
             display: grid;
@@ -102,8 +104,8 @@ header.topnav {
     a {
         width: 100%;
         padding-block: .7rem;
-        color: inherit;
         border-radius: var(--border-button);
+        color: var(--accent-header);
         
         &.active {
             color: var(--accent);
@@ -115,7 +117,7 @@ header.topnav {
         }   
 
         &:hover {
-
+            text-decoration: underline;
         }
 
         &:focus-visible {
@@ -128,6 +130,11 @@ header.topnav {
     a.contact {
         justify-self: center;
         align-self: center;
+    }
+    
+    #mobile-menu a {
+        color: var(--accent-header);
+        transition: color 0.5s ease;
     }
     
     svg.logo {
