@@ -1,22 +1,29 @@
-// const header = document.querySelector("header");
+const header = document.querySelector("header");
 
-// window.addEventListener("scroll", () => {
-//     if (window.scrollY > 50) {
-//         header.classList.add("scrolled");
-//     } else {
-//         header.classList.remove("scrolled");
-//     }
-// });
+// Check if the browser supports scroll-driven animations
+const supportsScrollAnimations = CSS.supports('animation-timeline', 'scroll()');
 
-const btn = document.querySelector('.hamburger');
+if (!supportsScrollAnimations) {
+    window.addEventListener("scroll", () => {
+        if (window.scrollY > 50) {
+            header.classList.add("scrolled");
+        } else {
+            header.classList.remove("scrolled");
+        }
+    });
+}
+
+const menu = document.querySelector('#mobile-menu');
 const icon = document.querySelector('#icon');
 
-document.addEventListener('toggle', (event) => {
-    if (event.target.id === 'mobile-menu') {
-        if (event.newState === 'open') {
-            icon.classList.add('open');
-        } else {
-            icon.classList.remove('open');
-        }
+menu.addEventListener('beforetoggle', (event) => {
+
+    if (event.newState === "closed") {
+
+        icon.classList.remove('open');
+        
+    } else {
+
+        icon.classList.add('open');
     }
-});
+}); 

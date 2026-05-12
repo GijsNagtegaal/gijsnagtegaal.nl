@@ -21,13 +21,11 @@
         </button>
 
         <section class="top-mobile-nav" id="mobile-menu" popover="auto">
-            <header>
-            </header>
                 <nav class="hamburger-menu">
-                    <a href="/">Home</a>
-                    <a href="/portfolio">Portfolio</a>
-                    <a href="/diensten">Diensten</a>
-                    <a href="/over-mij">Over mij</a>
+                    <a href="/" class="{% if currentPath == '/' %}active{% endif %}">Home</a>
+                    <a href="/portfolio" class="{% if currentPath == '/portfolio' %}active{% endif %}">Portfolio</a>
+                    <a href="/diensten" class="{% if currentPath == '/diensten' %}active{% endif %}">Diensten</a>
+                    <a href="/over-mij" class="{% if currentPath == '/over-mij' %}active{% endif %}">Over mij</a>
                 </nav>
             <footer>
 

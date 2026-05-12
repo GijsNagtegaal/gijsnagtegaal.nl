@@ -10,6 +10,7 @@ header.topnav {
     z-index: 4;
     background-color: transparent;
     transition: all 0.5s ease;
+    color: var(--accent-header);
     will-change: height, background-color;
     anchor-name: --header-anchor;
 
@@ -42,6 +43,11 @@ header.topnav {
             justify-content: center;
             display: flex;
         }
+
+        a {
+            padding-left: .5rem;
+            font-size: var(--heading-big);
+        }
     }
 
     @supports not (anchor-name: --header-anchor) {
@@ -63,7 +69,7 @@ header.topnav {
 
     nav.desktop-nav {
         display: none;
-        grid-template-columns: 20% 1fr 20%;
+        grid-template-columns: 15% 1fr 15%;
         width: 95%;
         justify-self: center;
 
@@ -71,26 +77,51 @@ header.topnav {
             display: grid;
         }
 
-        & :nth-child(1) {
+        .logo {
             justify-self: start;
         }
 
-        & :nth-child(2) {
-            justify-self: center;
-            align-self: center;
-        }
 
         .desktop-menu {
             display: flex;
             justify-content: space-evenly;
+            align-items: center;
             gap: 1rem;
+            width: 90%;
+            max-width: calc-size(fit-content, size + 7rem);
+        }
 
-            a {
-                color: var(--accent-header);
-                &.active {
-                    color: blue;;
-                }
+        a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--heading-small);
+        }
+    }
+
+    a {
+        width: 100%;
+        padding-block: .7rem;
+        color: inherit;
+        border-radius: var(--border-button);
+        
+        &.active {
+            color: var(--accent);
+
+            &:focus-visible {
+                background-color: var(--medium-background);
+                border: 2px solid var(--accent);;
             }
+        }   
+
+        &:hover {
+
+        }
+
+        &:focus-visible {
+            outline: none;
+            background-color: var(--medium-background);
+            border: 2px solid var(--dark-text);
         }
     }
 

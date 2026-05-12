@@ -28,6 +28,12 @@
             transform: translateY(-100%);
         }
     }
+
+    nav {
+        display: flex;
+        flex-direction: column;
+        padding: 1rem;
+    }
 }
 
 main.home {

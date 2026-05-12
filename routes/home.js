@@ -18,6 +18,7 @@ export function createHomeRoutes({ apiClient }) {
 
         console.error('Failed to load homepage data:', error);
         res.render('index', { 
+          currentPath: req.path,
           projects: [], 
           techStack: [] 
         });
