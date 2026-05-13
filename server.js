@@ -62,9 +62,12 @@ const fetchData = async (endpoint) => {
 const processItems = (items) => {
     if (!items) return [];
     const array = Array.isArray(items) ? items : [items];
+
     return array.map(item => ({
         ...item,
-        image: assetUrl(item.image)
+        // Process both image fields through assetUrl
+        image: assetUrl(item.image),
+        image_dark: assetUrl(item.image_dark)
     }));
 };
 
@@ -106,30 +109,25 @@ app.get('/portfolio', async (request, response) => {
     }
 });
 
-// Change '/project/:slug' to '/portfolio/project/:slug'
 app.get('/portfolio/project/:slug', async (request, response) => {
     try {
         const slug = request.params.slug;
-        
         const rawItem = await fetchData(`portfolio_items?filter[slug][_eq]=${slug}`);
         
         if (!rawItem || rawItem.length === 0) {
             return response.status(404).send('Project niet gevonden');
         }
 
+        // Processing the single item (wrapped in an array by fetchData)
         const project = processItems(rawItem)[0];
 
         response.render('project-detail.liquid', {
-            project: project
+            project: project 
         });
     } catch (error) {
         console.error('Project route error:', error);
         response.status(500).send('Interne server fout');
     }
-});
-
-app.post('/contact', (request, response) => {
-    response.json({ success: true });
 });
 
 // ─── SERVER START ─────────────────────────────────────────────────────────────

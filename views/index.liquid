@@ -5,8 +5,20 @@
     <!-- section with me and my tech stack -->
     <section class="imgijs">
 
-        <h1>Hoi! ik ben <span> Gijs Nagtegaal </span></h1>
+        {% comment %}
+            partial to render a heading, in this case with a span at the end for styling
+        {% endcomment %}
+        {% render 'partials/general-heading.liquid',
+            heading_level: "1",
+            my_class: "",
+            content:"Hoi! ik ben",
+            extra_element: "span",
+            extra_content: "Gijs Nagtegaal",
+        %}
 
+        {% comment %}
+            partial to render a picture, requires a src, width and height to work
+        {% endcomment %}
         {% render 'partials/picture.liquid',
             imagesrc:"/assets/images/gijsmemo",
             width: "250",
@@ -28,6 +40,7 @@
             {% capture tech_classes %}round badge techstack pos-{{ forloop.index }}{% endcapture %}
             {% render 'partials/picture.liquid',
                 imagesrc: tech.image,
+                imagesrc_dark: tech.image_dark,
                 width: "80",
                 height: "80",
                 alt: tech.name,
@@ -60,10 +73,11 @@
                 <li>
                     {% render 'partials/picture.liquid',
                         imagesrc: tech.image,
+                        imagesrc_dark: tech.image_dark,
                         width: "100",
                         height: "100",
                         alt: tech.name,
-                        class: "round techstack",
+                        class: tech_classes,
                         fetch: "high",
                         loading: "eager"
                     %}

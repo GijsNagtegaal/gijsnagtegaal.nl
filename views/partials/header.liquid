@@ -7,19 +7,13 @@
                 <path d="M267 43.5L267.25 44L264.75 48.25L262.25 52L258.25 59.25L255.25 65L251.5 71.25L248.5 76L247.25 78L246 78.5H163L155.75 79L148.25 80L135.25 82.75L131 84.25L126.75 86.25L121.5 89.75L118.5 92L115.25 94.5L114.25 95.75L111.25 99.75L107.25 105.75L105.5 109.5L104.25 112.75L103.75 113.25H59.5L59.25 112.75L61 106L63.75 98.25L65.5 94.25L68.5 88.75L71.5 82.75L73.5 80.5L75.5 77.75L78.5 74.25L80.75 71.75H81.25L81.75 70.75H82.25L82.5 70L84.5 68.25L87 66L91.25 62.75L94.25 60.5L98.25 58.5L103.25 55.75L107.25 53.75L115.75 50.25L118.75 49.5L123.75 48.5L129.75 47L139.25 45.25L147 44.25L156 43.75L267 43.5Z" fill="var(--accent-header)"/>
             </svg>
         </a>
-
         <button class="hamburger" popovertarget="mobile-menu">
-            <!-- menu burger self made to be able to animate -->
-            <label class="hamburger">
-                <input type="checkbox">
-                <svg viewBox="0 0 32 32">
-                    <path class="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"></path>
-                    <path class="line" d="M7 16 27 16"></path>
-                </svg>
-            </label>
+            <svg viewBox="0 0 32 32">
+                <path class="line line-top-bottom" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22"></path>
+                <path class="line" d="M7 16 27 16"></path>
+            </svg>
             <p>Menu</p>
         </button>
-
         <section class="top-mobile-nav" id="mobile-menu" popover="auto">
                 <nav class="hamburger-menu">
                     <a href="/" class="{% if currentPath == '/' %}active{% endif %}">Home</a>

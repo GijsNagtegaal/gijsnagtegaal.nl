@@ -1,35 +1,37 @@
-{% if imagesrc contains '/assets/images' %}
+{% assign has_real_dark_mode = false %}
+{% if imagesrc_dark and imagesrc_dark != "/assets/images/alium.webp" %}
+    {% assign has_real_dark_mode = true %}
+{% endif %}
 
+{% if imagesrc contains '/assets/images' %}
     <picture class="{{ class }}">
-        {% if imagesrc_dark %}
-        <!-- Dark mode source -->
-        <source srcset="{{ imagesrc_dark }}.avif?width={{ width }}&height={{ height }}&quality=90" type="image/avif" media="(prefers-color-scheme: dark)">
-        <source srcset="{{ imagesrc_dark }}.webp?width={{ width }}&height={{ height }}&quality=90" type="image/webp" media="(prefers-color-scheme: dark)">
+        {% if has_real_dark_mode %}
+            <!-- Dark mode source (Local Assets) -->
+            <source srcset="{{ imagesrc_dark }}.avif?width={{ width }}&height={{ height }}&quality=90" type="image/avif" media="(prefers-color-scheme: dark)">
+            <source srcset="{{ imagesrc_dark }}.webp?width={{ width }}&height={{ height }}&quality=90" type="image/webp" media="(prefers-color-scheme: dark)">
         {% endif %}
 
         <!-- Default / Light mode source -->
         <source srcset="{{ imagesrc }}.avif?width={{ width }}&height={{ height }}&quality=90" type="image/avif">
-        <source srcset="{{ imagesrc }}.webp?width={{ width }}&height={{ height }}&quality=0" type="image/webp">
+        <source srcset="{{ imagesrc }}.webp?width={{ width }}&height={{ height }}&quality=90" type="image/webp">
         
-        <!-- Fallback image + render src -->
-        <img class="{{ class }}" src="{{ imagesrc }}?width={{ width }}&height={{ height }}&quality=60" fetchpriority="{{ fetch }}" loading="{{ loading }}" style="{{ style }}" alt="{{ alt }}">
+        <img class="{{ class }}" src="{{ imagesrc }}?width={{ width }}&height={{ height }}&quality=60" fetchpriority="{{ fetch | default: 'auto' }}" loading="{{ loading | default: 'lazy' }}" style="{{ style }}" alt="{{ alt }}">
     </picture>
 
 {% else %}
     
     <picture class="{{ class }}">
-        {% if imagesrc_dark %}
-        <!-- Dark mode source -->
-        <source srcset="{{ imagesrc_dark }}?width={{ width }}&height={{ height }}&format=avif&quality=90" type="image/avif" media="(prefers-color-scheme: dark)">
-        <source srcset="{{ imagesrc_dark }}?width={{ width }}&height={{ height }}&format=webp&quality=90" type="image/webp" media="(prefers-color-scheme: dark)">
+        {% if has_real_dark_mode %}
+            <!-- Dark mode source (API Assets) -->
+            <source srcset="{{ imagesrc_dark }}?width={{ width }}&height={{ height }}&format=avif&quality=90" type="image/avif" media="(prefers-color-scheme: dark)">
+            <source srcset="{{ imagesrc_dark }}?width={{ width }}&height={{ height }}&format=webp&quality=90" type="image/webp" media="(prefers-color-scheme: dark)">
         {% endif %}
 
         <!-- Default / Light mode source -->
         <source srcset="{{ imagesrc }}?width={{ width }}&height={{ height }}&format=avif&quality=90" type="image/avif">
         <source srcset="{{ imagesrc }}?width={{ width }}&height={{ height }}&format=webp&quality=90" type="image/webp">
         
-        <!-- Fallback image + render src -->
-        <img class="{{ class }}" src="{{ imagesrc }}?width={{ width }}&height={{ height }}&quality=60" fetchpriority="{{ fetch }}" loading="{{ loading }}" style="{{ style }}" alt="{{ alt }}">
+        <img class="{{ class }}" src="{{ imagesrc }}?width={{ width }}&height={{ height }}&quality=60" fetchpriority="{{ fetch | default: 'auto' }}" loading="{{ loading | default: 'lazy' }}" style="{{ style }}" alt="{{ alt }}">
     </picture>
 
 {% endif %}
