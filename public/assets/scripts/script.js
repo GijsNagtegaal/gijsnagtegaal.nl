@@ -1,29 +1,25 @@
 const header = document.querySelector("header");
-
-// Check if the browser supports scroll-driven animations
 const supportsScrollAnimations = CSS.supports('animation-timeline', 'scroll()');
 
 if (!supportsScrollAnimations) {
-    window.addEventListener("scroll", () => {
-        if (window.scrollY > 50) {
-            header.classList.add("scrolled");
-        } else {
-            header.classList.remove("scrolled");
-        }
+    // We maken een sentinel element aan bovenaan de body
+    const scrollSentinel = document.createElement('div');
+    scrollSentinel.style.position = 'absolute';
+    scrollSentinel.style.top = '50px';
+    document.body.prepend(scrollSentinel);
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+
+            if (!entry.isIntersecting) {
+                header.classList.add("scrolled");
+            } else {
+                header.classList.remove("scrolled");
+            }
+        });
+    }, {
+        threshold: [0]
     });
+
+    observer.observe(scrollSentinel);
 }
-
-const menu = document.querySelector('#mobile-menu');
-const icon = document.querySelector('#icon');
-
-menu.addEventListener('beforetoggle', (event) => {
-
-    if (event.newState === "closed") {
-
-        icon.classList.remove('open');
-        
-    } else {
-
-        icon.classList.add('open');
-    }
-}); 

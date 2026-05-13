@@ -1,5 +1,5 @@
 {% assign has_real_dark_mode = false %}
-{% if imagesrc_dark and imagesrc_dark != "/assets/images/alium.webp" %}
+{% if imagesrc_dark and imagesrc_dark != "/assets/images/placeholder.webp" %}
     {% assign has_real_dark_mode = true %}
 {% endif %}
 
@@ -15,7 +15,7 @@
         <source srcset="{{ imagesrc }}.avif?width={{ width }}&height={{ height }}&quality=90" type="image/avif">
         <source srcset="{{ imagesrc }}.webp?width={{ width }}&height={{ height }}&quality=90" type="image/webp">
         
-        <img class="{{ class }}" src="{{ imagesrc }}?width={{ width }}&height={{ height }}&quality=60" fetchpriority="{{ fetch | default: 'auto' }}" loading="{{ loading | default: 'lazy' }}" style="{{ style }}" alt="{{ alt }}">
+        <img class="{{ class }}" src="{{ imagesrc }}?width={{ width }}&height={{ height }}&quality=60" fetchpriority="{{ fetch | default: 'auto' }}" loading="{{ loading | default: 'eager' }}" style="{{ style }}" alt="{{ alt }}">
     </picture>
 
 {% else %}

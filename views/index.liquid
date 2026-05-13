@@ -6,15 +6,9 @@
     <section class="imgijs">
 
         {% comment %}
-            partial to render a heading, in this case with a span at the end for styling
+            partial to render a heading, in this case with a em at the end for styling
         {% endcomment %}
-        {% render 'partials/general-heading.liquid',
-            heading_level: "1",
-            my_class: "",
-            content:"Hoi! ik ben",
-            extra_element: "span",
-            extra_content: "Gijs Nagtegaal",
-        %}
+        <h1> Hoi! ik ben  <em> Gijs Nagtegaal </em> </h1>
 
         {% comment %}
             partial to render a picture, requires a src, width and height to work
@@ -26,11 +20,10 @@
             alt: tech.name,
             class: "memo",
             fetch: "high",
-            loading: "eager"
         %}
 
         <!-- arrow svg -->
-        <svg class="arrow" width="78" height="62" viewBox="0 0 78 62" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg class="arrow" width="78" height="62" viewBox="0 0 78 62" fill="none">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M74.1889 56.443C74.1889 56.443 74.189 56.443 74.2088 56.2943C74.305 56.1792 74.3049 56.1791 74.3049 56.1791L74.2985 56.1738L74.2789 56.1573L74.2022 56.0926C74.1349 56.0355 74.0359 55.9513 73.9096 55.8425C73.6569 55.6251 73.2947 55.3098 72.8571 54.9189C71.9818 54.137 70.8055 53.0528 69.6011 51.8437C68.3963 50.6342 67.1655 49.3018 66.1798 48.0232C65.1905 46.7399 64.4619 45.528 64.2409 44.5571L63.9484 44.6237C64.1849 45.6625 64.9493 46.9184 65.9422 48.2064C66.9387 49.499 68.1793 50.8414 69.3886 52.0554C70.5983 53.2699 71.7791 54.3581 72.6572 55.1426C73.0963 55.535 73.46 55.8514 73.7139 56.07C73.7197 56.075 73.7255 56.0799 73.7312 56.0848C73.6369 56.0738 73.5302 56.0617 73.4122 56.0487C72.8954 55.9915 72.1601 55.9169 71.2859 55.8469C69.5381 55.7069 67.2319 55.5851 65.0038 55.6589C62.7812 55.7325 60.6153 56.0011 59.161 56.6538C58.4328 56.9806 57.8644 57.4119 57.5662 57.9816C57.2647 58.5577 57.2535 59.2481 57.5851 60.0581L57.8627 59.9444C57.556 59.1951 57.5811 58.6002 57.832 58.1207C58.0862 57.635 58.5862 57.2406 59.2838 56.9275C60.681 56.3005 62.796 56.0322 65.0137 55.9587C67.226 55.8854 69.5198 56.0064 71.262 56.1459C72.1327 56.2157 72.8649 56.29 73.3792 56.3468C73.6364 56.3753 73.8391 56.3993 73.9774 56.4163C74.0465 56.4248 74.0995 56.4314 74.1352 56.436L74.1756 56.4412L74.1889 56.443ZM74.2088 56.2943L74.3049 56.1791L74.7025 56.5112L74.1889 56.443L74.2088 56.2943Z" fill="var(--dark-text)"/>
             <path fill-rule="evenodd" clip-rule="evenodd" d="M26.2776 34.1926C37.4942 43.5941 50.8119 50.6679 63.8362 52.9644L63.8883 52.6689C50.9288 50.3838 37.658 43.34 26.4703 33.9626C15.2825 24.5853 6.18984 12.8844 1.57768 1.29895L1.29895 1.40991C5.93348 13.0516 15.0609 24.791 26.2776 34.1926Z" fill="var(--dark-text)"/>
             <path d="M74.2088 56.2943C74.189 56.443 74.1889 56.443 74.1889 56.443M74.2088 56.2943C74.305 56.1792 74.3049 56.1791 74.3049 56.1791M74.2088 56.2943L74.3049 56.1791M74.2088 56.2943L74.1889 56.443M74.1889 56.443L74.7025 56.5112L74.3049 56.1791M74.1889 56.443L74.1756 56.4412L74.1352 56.436C74.0995 56.4314 74.0465 56.4248 73.9774 56.4163C73.8391 56.3993 73.6364 56.3753 73.3792 56.3468C72.8649 56.29 72.1327 56.2157 71.262 56.1459C69.5198 56.0064 67.226 55.8854 65.0137 55.9587C62.796 56.0322 60.681 56.3005 59.2838 56.9275C58.5862 57.2406 58.0862 57.635 57.832 58.1207C57.5811 58.6002 57.556 59.1951 57.8627 59.9444L57.5851 60.0581C57.2535 59.2481 57.2647 58.5577 57.5662 57.9816C57.8644 57.4119 58.4328 56.9806 59.161 56.6538C60.6153 56.0011 62.7812 55.7325 65.0038 55.6589C67.2319 55.5851 69.5381 55.7069 71.2859 55.8469C72.1601 55.9169 72.8954 55.9915 73.4122 56.0487C73.5302 56.0617 73.6369 56.0738 73.7312 56.0848C73.7255 56.0799 73.7197 56.075 73.7139 56.07C73.46 55.8514 73.0963 55.535 72.6572 55.1426C71.7791 54.3581 70.5983 53.2699 69.3886 52.0554C68.1793 50.8414 66.9387 49.499 65.9422 48.2064C64.9493 46.9184 64.1849 45.6625 63.9484 44.6237L64.2409 44.5571C64.4619 45.528 65.1905 46.7399 66.1798 48.0232C67.1655 49.3018 68.3963 50.6342 69.6011 51.8437C70.8055 53.0528 71.9818 54.137 72.8571 54.9189C73.2947 55.3098 73.6569 55.6251 73.9096 55.8425C74.0359 55.9513 74.1349 56.0355 74.2022 56.0926L74.2789 56.1573L74.2985 56.1738L74.3049 56.1791M63.8362 52.9644C50.8119 50.6679 37.4942 43.5941 26.2776 34.1926C15.0609 24.791 5.93348 13.0516 1.29895 1.40991L1.57768 1.29895C6.18984 12.8844 15.2825 24.5853 26.4703 33.9626C37.658 43.34 50.9288 50.3838 63.8883 52.6689L63.8362 52.9644Z" stroke="var(--dark-text)" stroke-width="2"/>
@@ -46,7 +39,6 @@
                 alt: tech.name,
                 class: tech_classes,
                 fetch: "high",
-                loading: "eager"
             %}
         {% endfor %}
 
@@ -54,12 +46,12 @@
 
     <!-- About me + portfolio button-->
     <section class="about">
-        <h2> Ik ben een <span> frontend </span> <span> developer </span> </h2>
+        <h2> Ik ben een <em> frontend </em> <em> developer </em> </h2>
         <p>Naast mijn studie Frontend Design & Development aan de HvA, help ik als freelance developer MKB-ondernemers bij het realiseren van hun eerste professionele website of webshop.</p>
         <a class="primary" href="/portfolio">
             Bekijk mijn portfolio
             <!-- arrow right svg -->
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" >
                 <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
         </a>
@@ -67,29 +59,27 @@
 
     <!-- section with my tech stack -->
     <section class="techstack"> 
-        <h3>Mijn huidige <span> tech stack </span></h3>
-        <ul>
+        <h3>Mijn huidige <em> tech stack </em></h3>
+        <section>
             {% for tech in techStack %}
-                <li>
+                <figure>
                     {% render 'partials/picture.liquid',
                         imagesrc: tech.image,
                         imagesrc_dark: tech.image_dark,
                         width: "100",
                         height: "100",
-                        alt: tech.name,
                         class: tech_classes,
                         fetch: "high",
-                        loading: "eager"
                     %}
-                    <p>{{ tech.name }}</p>
-                </li>
+                    <figcaption>{{ tech.name }}</figcaption>
+                </figure>
             {% endfor %}
-        </ul>
+        </section>
     </section>
 
     <!-- most recent work -->
     <section class="recentwork">
-        <h3>Meest <span> recente projecten </span> </h3>
+        <h3>Meest <em> recente projecten </em> </h3>
         {% for project in projects %}
             {% render 'partials/portfolio-item.liquid', project: project %}
         {% else %}

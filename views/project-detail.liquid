@@ -2,29 +2,28 @@
 {% render 'partials/header.liquid', currentPath: currentPath %}
 <main>
     <section>
-        <h3>{{ project.type_site }} voor {{ project.Opdrachtgever }}</h3>
+        <h1>{{ project.type_site }} voor {{ project.Opdrachtgever }}</h1>
         <p>{{ project.opdracht }}</p>
 
-        <article class="tag-container">
+        <header class="tag-container">
             {% for tag in project.tags %}
                 <span class="tag">{{ tag }}</span>
             {% endfor %}
-        </article>
+        </header>
         
         {% if project.image %}
             {% render 'partials/picture.liquid',
                 imagesrc: project.image,
                 width: "800",
                 height: "450",
-                alt: project.Opdrachtgever,
                 class: "landscape",
                 loading: "eager"
             %}
         {% endif %}
 
-        <div class="description">
+        <p class="description">
             {{ project.description }}
-        </div>
+        </p>
 
         <a href="/portfolio">Terug naar overzicht</a>
     </section>

@@ -190,3 +190,66 @@ header.topnav {
         }
     }
 }
+
+article.portfolio-item {
+        display: flex;
+        flex-direction: column;
+        background-color: var(--accent-card);
+        border-radius: var(--border-card);
+        outline: 3px solid var(--accent-card);
+
+    a.card {
+        
+    }
+
+    header.tags {
+        display: flex;
+        width: 100%;
+        
+        justify-content: space-between;
+        padding-inline: 1rem;
+        padding-top: .5rem;
+
+        .tag {
+            font-size: var(--heading-small);
+            min-width: 25%;
+            width: fit-content;
+            background-color: var(--accent-button);
+            color: var(--always-light);
+            border-radius: var(--border-badge);
+            text-align: center;
+            padding: .5rem 1rem;
+        }
+    }
+
+    div.contentwrapper {
+        padding: 1rem;
+        color: var(--always-light);
+        h3 {
+            color: inherit;
+        }
+
+        p.opdracht {
+            margin-block: .5rem;
+        }
+
+        p.tags {
+
+        }
+    }
+
+    img {
+        border-radius: var(--border-card);
+    }
+
+    a.project {
+        display: flex;
+        border-radius: 0 0 var(--border-card) var(--border-card);
+        background-color: var(--accent-button);
+        align-items: center;
+        height: 3rem;
+        width: 100%;
+        color: var(--always-light);
+        padding: 1rem;
+    }
+}

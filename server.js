@@ -9,7 +9,7 @@ import methodOverride from 'method-override';
 
 const API_BASE = 'https://api.gijsnagtegaal.nl/items';
 const ASSET_BASE = 'https://api.gijsnagtegaal.nl/assets';
-const PLACEHOLDER_IMAGE = '/assets/images/alium.webp';
+const PLACEHOLDER_IMAGE = '/assets/images/placeholder.webp';
 
 // ─── APP SETUP ──────────────────────────────────────────────────────────────────
 

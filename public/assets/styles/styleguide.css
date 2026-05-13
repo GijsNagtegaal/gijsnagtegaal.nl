@@ -9,7 +9,6 @@
     padding: 0;
     line-height: 1.2;
     box-sizing: border-box;
-    font-family: main;
     list-style: none;
 }
 
@@ -78,14 +77,14 @@ main {
     }
 }
 
-h1, h2, h3, h4, h5, h6, span {
+h1, h2, h3, h4, h5, h6, em, span {
     font-family: baloo;
     font-weight: 600;
     font-size: var(--heading-big);
     color: var(--dark-text);
 }
 
-p,a, button {
+p,a, button, figcaption {
     font-family: baloo;
     font-weight: 600;
     font-size: var(--paragraph);
@@ -95,7 +94,7 @@ h5, h6 {
     font-size: var(--heading-small);
 }
 
-span {
+em, span {
     color: var(--accent);
 }
 

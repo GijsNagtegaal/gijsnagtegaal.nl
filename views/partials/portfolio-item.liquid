@@ -1,68 +1,3 @@
-<style>
-    article.portfolio-item {
-            display: flex;
-            flex-direction: column;
-            background-color: var(--accent-card);
-            border-radius: var(--border-card);
-            outline: 3px solid var(--accent-card);
-
-        a.card {
-            
-        }
-
-        div.tags {
-            display: flex;
-            width: 100%;
-            
-            justify-content: space-between;
-            padding-inline: 1rem;
-            padding-top: .5rem;
-
-            .tag {
-                font-size: var(--heading-small);
-                min-width: 25%;
-                width: fit-content;
-                background-color: var(--accent-button);
-                color: var(--always-light);
-                border-radius: var(--border-badge);
-                text-align: center;
-                padding: .5rem 1rem;
-            }
-        }
-
-        div.contentwrapper {
-            padding: 1rem;
-            color: var(--always-light);
-            h3 {
-                color: inherit;
-            }
-
-            p.opdracht {
-                margin-block: .5rem;
-            }
-
-            p.tags {
-
-            }
-        }
-
-        img {
-            border-radius: var(--border-card);
-        }
-
-        a.project {
-            display: flex;
-            border-radius: 0 0 var(--border-card) var(--border-card);
-            background-color: var(--accent-button);
-            align-items: center;
-            height: 3rem;
-            width: 100%;
-            color: var(--always-light);
-            padding: 1rem;
-        }
-    }
-</style>
-
 <article class="portfolio-item">
     <a class="card" href="/portfolio/project/{{ project.slug }}">
         {% if project.image %}
@@ -77,11 +12,11 @@
         {% endif %}
     
         <!-- tags array -->
-        <div class="tags">
+        <header class="tags">
             {% for tag in project.tags %}
                 <span class="tag">{{ tag }}</span>
             {% endfor %}
-        </div>
+        </header>
 
         <div class="contentwrapper">
             <h3>{{ project.type_site }} voor {{ project.Opdrachtgever }}</h3>
@@ -90,9 +25,8 @@
     </a>
     <a class="project" href="/portfolio/project/{{ project.slug }}">
         Bekijk het volledige project
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" >
             <path d="M5 12H19M12 19L19 12L12 5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        
     </a>
 </article>

@@ -186,7 +186,7 @@ main.home {
             margin-top: 30dvh;
         }
 
-        ul {
+        section {
             display: flex;
             margin-block: 1rem;
             gap: 2rem;
@@ -194,7 +194,7 @@ main.home {
             color: var(--dark-text);
         }
 
-        li {
+        figure {
             display: flex;
             flex-direction: column;
             align-items: center;
