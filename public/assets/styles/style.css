@@ -181,6 +181,7 @@ main.home {
         margin-top: 3rem;
         overflow-x: scroll;
         color: var(--dark-text);
+        
 
         @media (min-width: 800px) {
             margin-top: 30dvh;
@@ -191,6 +192,8 @@ main.home {
             margin-block: 1rem;
             gap: 2rem;
             overflow-x: scroll;
+            overflow-y: hidden;
+            height: auto;
             color: var(--dark-text);
         }
 
