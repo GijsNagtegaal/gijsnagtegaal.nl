@@ -80,11 +80,13 @@
     <!-- most recent work -->
     <section class="recentwork">
         <h3>Meest <em> recente projecten </em> </h3>
-        {% for project in projects %}
-            {% render 'partials/portfolio-item.liquid', project: project %}
-        {% else %}
-            <p>Geen projecten gevonden.</p>
-        {% endfor %}
+        <div class="workwrapper">
+            {% for project in projects %}
+                {% render 'partials/portfolio-item.liquid', project: project %}
+            {% else %}
+                <p>Geen projecten gevonden.</p>
+            {% endfor %}
+        </div>
     </section>
 
 

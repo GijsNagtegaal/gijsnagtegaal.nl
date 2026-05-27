@@ -68,8 +68,10 @@ main.home {
             left: 5%;
 
             @media (min-width: 800px) {
+                width: 6rem;
+                height: auto;
                 top: 16%;
-                left: 10%;
+                left: 17%;
             }
         }
 
@@ -78,6 +80,14 @@ main.home {
             justify-content: center;
             align-items: center;
             width: 100%;
+            border-radius: var(--border-round);
+            background-image: radial-gradient(
+                ellipse at center, 
+                var(--accent) 0%,                                     
+                color-mix(in srgb, var(--accent) 50%, transparent) 15%, 
+                color-mix(in srgb, var(--accent) 15%, transparent) 35%,
+                transparent 75% 
+            );
         }
 
         img.memo {
@@ -227,5 +237,25 @@ main.home {
         display: flex;
         flex-direction: column;
         gap: 2rem;
+
+
+
+        div.workwrapper {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+
+            @media (min-width: 800px) {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            @media (min-width: 1200px) {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+
+            @media (min-width: 1600px) {
+                grid-template-columns: 1fr 1fr 1fr 1fr;
+            }
+        }
     }
 }

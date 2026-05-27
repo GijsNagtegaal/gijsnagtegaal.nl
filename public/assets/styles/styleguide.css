@@ -30,8 +30,8 @@ body {
     /* --------- font sizes --------- */
     --paragraph: clamp(1.1rem, 2vw, 1.3rem);
 	--heading-small: clamp(1.2rem, 2vw, 1rem);
-	--heading-medium: clamp(1.4rem, 2.7vw, 2.2rem);
-	--heading-big: clamp(1.6rem, 3vw, 2.7rem);
+	--heading-medium: clamp(1.5rem, 2vw, 2.3rem);
+	--heading-big: clamp(1.4rem, 2.7vw, 2.2rem);
 
     /* --------- colors --------- */
 
@@ -80,7 +80,7 @@ main {
 h1, h2, h3, h4, h5, h6, em, span {
     font-family: baloo;
     font-weight: 600;
-    font-size: var(--heading-big);
+    font-size: var(--heading-medium);
     color: var(--dark-text);
 }
 

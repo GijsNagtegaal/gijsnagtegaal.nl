@@ -192,15 +192,13 @@ header.topnav {
 }
 
 article.portfolio-item {
-        display: flex;
-        flex-direction: column;
-        background-color: var(--accent-card);
-        border-radius: var(--border-card);
-        outline: 3px solid var(--accent-card);
-
-    a.card {
-        
-    }
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 100%;
+    background-color: var(--accent-card);
+    border-radius: var(--border-card);
+    outline: 3px solid var(--accent-card);
 
     header.tags {
         display: flex;
