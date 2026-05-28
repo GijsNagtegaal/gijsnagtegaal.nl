@@ -8,7 +8,7 @@
 
 <section class="portfolio-items">
     {% for item in portfolioItems %}
-        {% render 'partials/portfolio-item.liquid', project: item %}
+        {% render 'partials/portfolio-item.liquid', project: item, customclass: "scroll-animated" %}
     {% endfor %}
 </section>
 </main>
