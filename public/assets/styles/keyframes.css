@@ -37,3 +37,21 @@
         backdrop-filter: blur(10px);
     }
 }
+
+/* Fade in animation of elements */
+
+
+@keyframes slideIn {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(0%);
+    }
+}
+
+.scroll-animated {
+    animation: slideIn linear both; 
+    animation-timeline: view(); 
+    animation-range: cover 0% cover 30%; 
+}

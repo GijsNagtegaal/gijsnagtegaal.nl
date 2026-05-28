@@ -82,7 +82,7 @@
         <h3>Meest <em> recente projecten </em> </h3>
         <div class="workwrapper">
             {% for project in projects %}
-                {% render 'partials/portfolio-item.liquid', project: project %}
+                {% render 'partials/portfolio-item.liquid', project: project, customclass: "scroll-animated", %}
             {% else %}
                 <p>Geen projecten gevonden.</p>
             {% endfor %}
