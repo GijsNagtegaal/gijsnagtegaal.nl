@@ -220,7 +220,7 @@ article.portfolio-item {
         }
     }
 
-    div.contentwrapper {
+    section.contentwrapper {
         padding: 1rem;
         color: var(--always-light);
         h3 {

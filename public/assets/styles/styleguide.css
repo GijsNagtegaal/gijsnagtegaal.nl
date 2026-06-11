@@ -102,9 +102,9 @@ em, span {
 img.techstack {
     width: 4rem;
     height: 4rem;
-    padding: .5rem;
+    padding: .3rem;
     background-color: var(--dark-background);
-    border-radius: var(--border-round);
+    border-radius: 1rem;
 }
 
 a, button {
