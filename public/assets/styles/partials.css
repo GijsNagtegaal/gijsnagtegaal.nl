@@ -108,11 +108,11 @@ header.topnav {
         color: var(--accent-header);
         
         &.active {
-            color: var(--accent);
+            color: var(--primary);
 
             &:focus-visible {
                 background-color: var(--medium-background);
-                border: 2px solid var(--accent);;
+                border: 2px solid var(--primary);
             }
         }   
 
@@ -238,16 +238,5 @@ article.portfolio-item {
 
     img {
         border-radius: var(--border-card);
-    }
-
-    a.project {
-        display: flex;
-        border-radius: 0 0 var(--border-card) var(--border-card);
-        background-color: var(--accent-button);
-        align-items: center;
-        height: 3rem;
-        width: 100%;
-        color: var(--always-light);
-        padding: 1rem;
     }
 }

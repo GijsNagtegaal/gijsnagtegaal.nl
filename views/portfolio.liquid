@@ -6,7 +6,7 @@
         <p>Here is a selection of projects I have worked on.</p>
     </section>
 
-<section class="portfolio-items">
+<section class="workwrapper">
     {% for item in portfolioItems %}
         {% render 'partials/portfolio-item.liquid', project: item, customclass: "scroll-animated" %}
     {% endfor %}

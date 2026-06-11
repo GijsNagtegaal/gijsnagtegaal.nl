@@ -48,13 +48,11 @@
     <section class="about">
         <h2> I am a <em> frontend </em> <em> developer </em> </h2>
         <p>In addition to studying Frontend Design & Development at the HvA, I work as a freelance developer helping small business owners create their first professional website or online store.</p>
-        <a class="primary" href="/portfolio">
-            Check my portfolio
-            <!-- arrow right svg -->
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" >
-                <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-        </a>
+        {% render 'partials/link.liquid',
+            content: "Check my portfolio",
+            custom_class: "primary",
+            svg: "true",
+        %}
     </section>
 
     <!-- section with my tech stack -->
@@ -80,13 +78,13 @@
     <!-- most recent work -->
     <section class="recentwork">
         <h3> Recent <em> projects </em> </h3>
-        <div class="workwrapper">
+        <section class="workwrapper">
             {% for project in projects %}
                 {% render 'partials/portfolio-item.liquid', project: project, customclass: "scroll-animated", %}
             {% else %}
                 <p>No projects found.</p>
             {% endfor %}
-        </div>
+        </section>
     </section>
 
 
