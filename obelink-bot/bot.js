@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 
-console.log("Bot-script is succesvol geladen en de timer is gestart!");
+console.log("Bot-script is succesvol geladen en de timers zijn gestart!");
 
 const VERZENDBAZEN = {
     URL: "https://pmdwbormhrtmzzmxrpea.supabase.co",
@@ -18,7 +18,6 @@ async function checkRetouren() {
     try {
         console.log(`\n--- 🔄 Check gestart: ${new Date().toLocaleTimeString()} ---`);
         
-        // 1. Berichten ophalen uit Mirakl
         const miraklRes = await fetch(MIRAKL.URL, {
             headers: { "Authorization": MIRAKL.API_KEY, "Accept": "application/json" }
         });
@@ -32,7 +31,6 @@ async function checkRetouren() {
             if (fallbackArray) alleThreads = fallbackArray;
         }
         
-        // 2. Zoeken naar retouren
         const retourThread = alleThreads.find(thread => {
             const topic = thread.topic?.value?.toLowerCase() || "";
             return topic.includes("retour") || topic.includes("return") || topic.includes("rücksend");
@@ -42,7 +40,6 @@ async function checkRetouren() {
             return console.log("💤 Geen nieuwe retourberichten gevonden.");
         }
 
-        // 3. Ordernummer ophalen
         let orderNummer = "ONBEKEND-ID";
         if (retourThread.entities && retourThread.entities.length > 0) {
             orderNummer = retourThread.entities[0].id || retourThread.entities[0].label;
@@ -50,8 +47,6 @@ async function checkRetouren() {
 
         console.log(`✅ Retourbericht gevonden in Obelink! Ordernummer: ${orderNummer}`);
 
-        // 4. Inloggen Verzendbazen
-        console.log("🔐 Inloggen bij Verzendbazen...");
         const loginRes = await fetch(`${VERZENDBAZEN.URL}/auth/v1/token?grant_type=password`, {
             method: "POST",
             headers: { "apikey": VERZENDBAZEN.API_KEY, "Content-Type": "application/json" },
@@ -61,23 +56,16 @@ async function checkRetouren() {
         if (!loginRes.ok) throw new Error("Inloggen bij Verzendbazen mislukt.");
         const token = (await loginRes.json()).access_token;
 
-        // 4.2 CONTROLE: Bestaat dit ticket al in Verzendbazen?
-        console.log(`🔍 Checken of order ${orderNummer} al in het systeem staat...`);
         const checkRes = await fetch(`${VERZENDBAZEN.URL}/rest/v1/tickets?order_number=eq.${orderNummer}&select=id`, {
             method: "GET",
-            headers: { 
-                "apikey": VERZENDBAZEN.API_KEY, 
-                "Authorization": `Bearer ${token}` 
-            }
+            headers: { "apikey": VERZENDBAZEN.API_KEY, "Authorization": `Bearer ${token}` }
         });
         const checkData = await checkRes.json();
         
         if (checkData && checkData.length > 0) {
-            return console.log(`⏩ Order ${orderNummer} heeft al een ticket! We slaan deze over om dubbele tickets te voorkomen.`);
+            return console.log(`⏩ Order ${orderNummer} heeft al een ticket! We slaan deze over.`);
         }
 
-        // 4.5. Het volgende ticketnummer ophalen uit Supabase
-        console.log("🔢 Volgend ticketnummer ophalen...");
         const numRes = await fetch(`${VERZENDBAZEN.URL}/rest/v1/rpc/next_ticket_number`, {
             method: "POST",
             headers: { 
@@ -92,7 +80,6 @@ async function checkRetouren() {
         const ticketNummerRauw = await numRes.text();
         const ticketNummer = ticketNummerRauw.replace(/^"|"$/g, '').trim();
 
-        // 5. Ticket aanmaken met ALLE benodigde velden
         console.log(`🎫 Ticket aanmaken in database...`);
         const ticketRes = await fetch(`${VERZENDBAZEN.URL}/rest/v1/tickets?select=*`, {
             method: "POST",
@@ -134,10 +121,16 @@ async function checkRetouren() {
         console.error("❌ Script fout:", e.message);
     }
 }
+
+// 1. Draai direct bij opstarten
 checkRetouren();
 
+// 2. Check retouren elke 15 minuten (15 * 60 * 1000)
+setInterval(checkRetouren, 2 * 60 * 1000);
+
+// 3. Ping website elke 1 minuut (1 * 60 * 1000)
 setInterval(() => {
     fetch('https://gijsnagtegaal.nl') 
-        .then(() => console.log(`--- 🟢 Server ping succesvol (blijft wakker): ${new Date().toLocaleTimeString()} ---`))
+        .then(() => console.log(`--- 🟢 Server ping succesvol: ${new Date().toLocaleTimeString()} ---`))
         .catch(err => console.error("--- 🔴 Ping fout: ", err.message));
 }, 1 * 60 * 1000);
