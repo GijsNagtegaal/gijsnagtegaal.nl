@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import methodOverride from 'method-override';
-
+import './obelink-bot/bot.js';
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 
 const API_BASE = 'https://api.gijsnagtegaal.nl/items';
