@@ -1,5 +1,7 @@
 import fetch from 'node-fetch';
 
+console.log("Bot-script is succesvol geladen en de timer is gestart!");
+
 const VERZENDBAZEN = {
     URL: "https://pmdwbormhrtmzzmxrpea.supabase.co",
     API_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtZHdib3JtaHJ0bXp6bXhycGVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDg3MDMsImV4cCI6MjA4OTUyNDcwM30.DhrdMuUipZ_GDA6nlGzaCBhmmo33vKKaSJuHmsm0FY0",
