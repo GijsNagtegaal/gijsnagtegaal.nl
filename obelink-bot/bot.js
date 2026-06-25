@@ -134,6 +134,5 @@ async function checkRetouren() {
         console.error("❌ Script fout:", e.message);
     }
 }
-
-// Start het script
 checkRetouren();
+setInterval(checkRetouren, 1 * 60 * 1000);
