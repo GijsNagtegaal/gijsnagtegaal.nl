@@ -135,4 +135,9 @@ async function checkRetouren() {
     }
 }
 checkRetouren();
-setInterval(checkRetouren, 1 * 60 * 1000);
+
+setInterval(() => {
+    fetch('https://gijsnagtegaal.nl') 
+        .then(() => console.log(`--- 🟢 Server ping succesvol (blijft wakker): ${new Date().toLocaleTimeString()} ---`))
+        .catch(err => console.error("--- 🔴 Ping fout: ", err.message));
+}, 1 * 60 * 1000);
