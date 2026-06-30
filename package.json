@@ -9,6 +9,7 @@
   "dependencies": {
     "cookie-parser": "^1.4.7",
     "express": "^5.2.1",
+    "form-data": "^4.0.6",
     "liquidjs": "^10.25.7",
     "method-override": "^3.0.0",
     "node-fetch": "^3.3.2"
