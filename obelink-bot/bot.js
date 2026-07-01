@@ -201,7 +201,7 @@ class SupabaseService {
         const ticketData = {
             "ticket_number": ticketNummer,
             "order_number": orderNummer,
-            "description": `Automatisch gegenereerd ticket voor retour order ${orderNummer}`,
+            "description": `Graag een retourlabel voor ${orderNummer}`,
             "status_id": autoStatusId,
             "customer_id": autoCustomerId
         };
