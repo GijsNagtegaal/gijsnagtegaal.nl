@@ -5,5 +5,12 @@
         "status": "verzonden",
         "aangemaakt_op": "2026-06-30T05:54:11.723Z",
         "bijgewerkt_op": "2026-06-30T05:58:36.697Z"
+    },
+    "2003305598-A": {
+        "ticket_id": "7a138699-eee7-4b64-8b51-5c62f73e0e00",
+        "mirakl_thread_id": "ef36efe5-a1b4-462b-a3c9-d3f0f64f6921",
+        "status": "wacht_op_label",
+        "aangemaakt_op": "2026-07-01T19:51:37.458Z",
+        "bijgewerkt_op": "2026-07-01T19:51:37.458Z"
     }
 }

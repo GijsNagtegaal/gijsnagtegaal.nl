@@ -167,7 +167,50 @@ class SupabaseService {
         return ruwNummer.replace(/^"|"$/g, '').trim(); 
     }
 
+    /**
+     * ZOEKT AUTOMATISCH NAAR EEN GELDIG ID IN DE DATABASE
+     * Dit voorkomt Foreign Key fouten (zoals category_id constraint fouten).
+     */
+    static async haalEersteIdOp(token, tabellenNamen) {
+        for (const tabel of tabellenNamen) {
+            try {
+                const res = await fetchMetRetry(`${CONFIG.SUPABASE.URL}/rest/v1/${tabel}?select=id&limit=1`, {
+                    method: "GET",
+                    headers: { "apikey": CONFIG.SUPABASE.API_KEY, "Authorization": `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.length > 0) return data[0].id; // Eerste de beste geldige ID
+                }
+            } catch (e) {
+                // Negeer fouten, probeer de volgende tabelnaam
+            }
+        }
+        return null;
+    }
+
     static async maakTicketAan(token, ticketNummer, orderNummer) {
+        // AUTOMATISCH GELDIGE IDs ZOEKEN!
+        const autoCategoryId = await this.haalEersteIdOp(token, ["categories", "ticket_categories", "category"]);
+        const autoStatusId = await this.haalEersteIdOp(token, ["statuses", "ticket_statuses", "status"]) || "st-1";
+        const autoCustomerId = await this.haalEersteIdOp(token, ["customers", "users"]) || "84608f8a-9435-4ce8-ac0f-b9f6115d8416";
+
+        if (autoCategoryId) Log.info(`🤖 Auto-detectie: category_id gevonden -> ${autoCategoryId}`);
+        
+        // Bouw de data op voor het nieuwe ticket
+        const ticketData = {
+            "ticket_number": ticketNummer,
+            "order_number": orderNummer,
+            "description": `Automatisch gegenereerd ticket voor retour order ${orderNummer}`,
+            "status_id": autoStatusId,
+            "customer_id": autoCustomerId
+        };
+
+        // Voeg category_id alleen toe als we er eentje hebben gevonden
+        if (autoCategoryId) {
+            ticketData.category_id = autoCategoryId;
+        }
+
         const res = await fetchMetRetry(`${CONFIG.SUPABASE.URL}/rest/v1/tickets?select=*`, {
             method: "POST",
             headers: { 
@@ -176,18 +219,21 @@ class SupabaseService {
                 "Content-Type": "application/json", 
                 "Prefer": "return=representation" 
             },
-            body: JSON.stringify({
-                "ticket_number": ticketNummer,
-                "customer_id": "84608f8a-9435-4ce8-ac0f-b9f6115d8416",
-                "status_id": "st-1", 
-                "order_number": orderNummer,
-                "description": `Automatisch gegenereerd ticket voor retour order ${orderNummer}`
-            })
+            body: JSON.stringify(ticketData)
         });
         
         const data = await res.json();
-        if (!data || data.length === 0) throw new Error("Fout bij wegschrijven ticket in database.");
-        return data[0];
+
+        // Vang database- en validatiefouten van Supabase netjes af
+        if (!res.ok || data.error || data.code) {
+            throw new Error(`Supabase weigerde de insert. Reden: ${data.message || JSON.stringify(data)}`);
+        }
+
+        if (!data || (Array.isArray(data) && data.length === 0)) {
+            throw new Error("Fout bij wegschrijven: geen data teruggekregen van de database.");
+        }
+
+        return Array.isArray(data) ? data[0] : data;
     }
 }
 
@@ -269,9 +315,6 @@ async function stap1_CheckNieuweRetouren() {
     }
 }
 
-// ============================================================================
-// 6. HOOFDFUNCTIE 2: LABELS ZOEKEN (WATERDICHT) EN VERZENDEN
-// ============================================================================
 // ============================================================================
 // 6. HOOFDFUNCTIE 2: LABELS ZOEKEN (WATERDICHT) EN VERZENDEN
 // ============================================================================
