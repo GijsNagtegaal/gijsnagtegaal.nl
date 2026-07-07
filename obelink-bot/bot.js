@@ -111,11 +111,12 @@ class GeheugenBeheerder {
         }
     }
 
-    static voegToe(orderNummer, ticketId, miraklThreadId) {
+static voegToe(orderNummer, ticketId, miraklThreadId, klantNaam = null) { // <-- Hier 'klantNaam = null' toegevoegd!
         const geheugen = this.laad();
         geheugen[orderNummer] = {
             ticket_id: ticketId,
             mirakl_thread_id: miraklThreadId,
+            klant_naam: klantNaam,
             status: "wacht_op_label",
             aangemaakt_op: new Date().toISOString(),
             bijgewerkt_op: new Date().toISOString()
@@ -274,12 +275,28 @@ async function stap1_CheckNieuweRetouren() {
 
         const meestRecenteThread = retourThreads[0];
         let orderNummer = "ONBEKEND";
+        let gevondenKlantNaam = null;
         
+        // 1. Ordernummer ophalen
         if (meestRecenteThread.entities && meestRecenteThread.entities.length > 0) {
             orderNummer = meestRecenteThread.entities[0].id || meestRecenteThread.entities[0].label;
         }
 
-        Log.info(`Meest recente retour gevonden! Order: ${orderNummer}`);
+ // 2. Klantnaam ophalen (Robuuste manier: we checken alle mogelijke Mirakl velden)
+        if (meestRecenteThread.customer && meestRecenteThread.customer.firstname) {
+            gevondenKlantNaam = meestRecenteThread.customer.firstname;
+        } else if (meestRecenteThread.customer && meestRecenteThread.customer.name) {
+            gevondenKlantNaam = meestRecenteThread.customer.name.split(" ")[0];
+        } else if (meestRecenteThread.customer_name) {
+            gevondenKlantNaam = meestRecenteThread.customer_name.split(" ")[0];
+        } else if (meestRecenteThread.participants && Array.isArray(meestRecenteThread.participants)) {
+            const klant = meestRecenteThread.participants.find(p => p.type === 'CUSTOMER' || p.role === 'CUSTOMER');
+            if (klant && klant.name) {
+                gevondenKlantNaam = klant.name.split(" ")[0]; 
+            }
+        }
+
+        Log.info(`Meest recente retour gevonden! Order: ${orderNummer} (Klant: ${gevondenKlantNaam || "Onbekend"})`);
 
         let geheugen = GeheugenBeheerder.laad();
         if (geheugen[orderNummer]) {
@@ -307,7 +324,7 @@ async function stap1_CheckNieuweRetouren() {
             Log.succes(`✅ Nieuw ticket succesvol aangemaakt! ID: ${ticketId}`);
         }
 
-        GeheugenBeheerder.voegToe(orderNummer, ticketId, meestRecenteThread.id);
+        GeheugenBeheerder.voegToe(orderNummer, ticketId, meestRecenteThread.id, gevondenKlantNaam);
         Log.succes(`💾 Order ${orderNummer} is opgeslagen in geheugen om op een label te wachten.`);
 
     } catch (e) {
@@ -429,13 +446,22 @@ async function stap2_VerwerkEnVerzendLabels() {
             // DYNAMISCH BERICHT GENEREREN!
             const dynamischBericht = genereerKlantBericht(orderNr, data.klant_naam);
 
-            Log.info(`🚀 Upload voorbereiden voor Mirakl Thread ID: ${data.mirakl_thread_id}...`);
+            Log.info(`🚀 Upload voorbereiden via Mirakl Inbox API voor order: ${orderNr}...`);
             const form = new FormData();
-            form.append("message_input", JSON.stringify({ 
+            
+            // 1. De JSON body voor het bericht (gericht aan de klant)
+            const jsonPayload = JSON.stringify({ 
                 "to": [ { "type": "CUSTOMER" } ],
                 "body": dynamischBericht
-            }), { contentType: 'application/json' });
+            });
+
+            // 2. De Buffer-truc: verplicht Node.js om de Content-Type correct door te geven (voorkomt de 415 error!)
+            form.append("message_input", Buffer.from(jsonPayload), { 
+                filename: "message.json",
+                contentType: "application/json" 
+            });
             
+            // 3. Voeg de PDF toe
             form.append("files", pdfBuffer, { 
                 filename: labelData.bestandsNaam, 
                 contentType: "application/pdf" 
@@ -445,7 +471,7 @@ async function stap2_VerwerkEnVerzendLabels() {
             if (TEST_MODUS) {
                 Log.test("=========================================================================");
                 Log.test(`TESTMODUS IS ACTIEF!`);
-                Log.test(`Actie: Verzoek sturen naar Mirakl`);
+                Log.test(`Actie: Verzoek sturen naar Mirakl Inbox Thread`);
                 Log.test(`Gegenereerd bericht:\n${dynamischBericht}`);
                 Log.test(`-> TEST_MODUS staat aan, dus upload naar klant is geannuleerd.`);
                 Log.test("=========================================================================");
@@ -453,10 +479,18 @@ async function stap2_VerwerkEnVerzendLabels() {
             }
 
             // ECHT VERZENDEN NAAR MIRAKL
-            Log.info("Uploading naar Mirakl... Let op, dit gaat naar de klant!");
-            const replyRes = await fetchMetRetry(`${CONFIG.MIRAKL.URL}/${data.mirakl_thread_id}/messages`, {
+            Log.info("Uploading naar Mirakl Inbox... Let op, dit gaat naar de klant!");
+            
+            // HET CORRECTE ENDPOINT (message ZONDER DE 'S'! 🎉)
+            const uploadUrl = `https://marketplace-obelink.mirakl.net/api/inbox/threads/${data.mirakl_thread_id}/message`;
+
+            const replyRes = await fetchMetRetry(uploadUrl, {
                 method: "POST",
-                headers: { "Authorization": CONFIG.MIRAKL.API_KEY, ...form.getHeaders() },
+                headers: { 
+                    "Authorization": CONFIG.MIRAKL.API_KEY, 
+                    "Accept": "application/json", 
+                    ...form.getHeaders() 
+                },
                 body: form
             });
 
@@ -464,7 +498,8 @@ async function stap2_VerwerkEnVerzendLabels() {
                 Log.succes(`🎉 BOOM! Label voor order ${orderNr} is succesvol naar de klant gestuurd via Mirakl!`);
                 GeheugenBeheerder.markeerAlsVerzonden(orderNr);
             } else {
-                Log.fout(`❌ Fout bij uploaden naar Mirakl:`, await replyRes.text());
+                const errorText = await replyRes.text();
+                Log.fout(`❌ Fout bij uploaden (HTTP ${replyRes.status} ${replyRes.statusText}):`, errorText || "(Lege response)");
             }
         }
     } catch (e) {
