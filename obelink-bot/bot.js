@@ -1,15 +1,10 @@
 /**
  * ============================================================================
- * OBELINK RETOUR & LABEL BOT - ENTERPRISE EDITIE (WATERDICHTE VERSIE)
- * ============================================================================
- * Dit script controleert Mirakl op retour-aanvragen, maakt automatisch
- * tickets aan in Supabase (Verzendbazen), en stuurt PDF-labels terug naar de 
- * klant zodra deze in de juiste map zijn geplaatst.
+ * OBELINK RETOUR BOT - DIRECT LINK EDITIE 🚀 (MET ORDER-API FIX & ANTI-HANG)
  * ============================================================================
  */
 
 import fetch from 'node-fetch';
-import FormData from 'form-data';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -17,44 +12,31 @@ import { fileURLToPath } from 'url';
 // ============================================================================
 // 1. CONFIGURATIE & INSTELLINGEN
 // ============================================================================
-// 🚨 ZET DIT OP FALSE ALS JE KLAAR BENT MET TESTEN EN ECHT WILT VERZENDEN 🚨
-const TEST_MODUS = false; 
+const TEST_MODUS = true; 
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const GEHEUGEN_BESTAND = path.join(__dirname, 'geheugen.json');
-const BUCKET_NAME = "ticket-attachments";
+const RETURN_URL = "https://www.clicktoreturn.com/v2:d87cd76604cacfe0e273aa08cf7a0a49:253ddf083d3c8d3f0b8de59f9a023aaf3667f48a537711c7460b567df41c8258";
 
 const CONFIG = {
-    SUPABASE: {
-        URL: "https://pmdwbormhrtmzzmxrpea.supabase.co",
-        API_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtZHdib3JtaHJ0bXp6bXhycGVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5NDg3MDMsImV4cCI6MjA4OTUyNDcwM30.DhrdMuUipZ_GDA6nlGzaCBhmmo33vKKaSJuHmsm0FY0",
-        EMAIL: "boekhouding@aedontrading.nl",
-        WACHTWOORD: "bybbac-xuvqiC-8tixfi"
-    },
     MIRAKL: {
-        URL: "https://marketplace-obelink.mirakl.net/api/inbox/threads",
+        INBOX_URL: "https://marketplace-obelink.mirakl.net/api/inbox/threads",
+        ORDERS_URL: "https://marketplace-obelink.mirakl.net/api/orders",
         API_KEY: "b57a6ad1-2004-4dda-8f45-3576b563434f"
     },
     BOT: {
-        CHECK_RETOUREN_INTERVAL_MS: 1 * 60 * 1000,  // Elke 1 minuut checken
-        CHECK_LABELS_INTERVAL_MS: 1 * 60 * 1000,    // Elke 1 minuut labels zoeken
-        MAX_RETRIES: 3,                             // Hoe vaak een mislukte API call opnieuw proberen
-        RETRY_DELAY_MS: 2000                        // Wachttijd tussen retries
+        CHECK_RETOUREN_INTERVAL_MS: 1 * 60 * 1000, 
+        MAX_RETRIES: 3,                             
+        RETRY_DELAY_MS: 2000                        
     }
 };
 
 // ============================================================================
-// 2. UTILITEITEN & LOGGING (KLEUREN IN TERMINAL)
+// 2. UTILITEITEN & LOGGING
 // ============================================================================
 const Kleuren = {
-    Reset: "\x1b[0m",
-    Helder: "\x1b[1m",
-    Groen: "\x1b[32m",
-    Geel: "\x1b[33m",
-    Blauw: "\x1b[34m",
-    Magenta: "\x1b[35m",
-    Cyaan: "\x1b[36m",
-    Rood: "\x1b[31m"
+    Reset: "\x1b[0m", Helder: "\x1b[1m", Groen: "\x1b[32m", Geel: "\x1b[33m",
+    Cyaan: "\x1b[36m", Rood: "\x1b[31m", Magenta: "\x1b[35m"
 };
 
 const Log = {
@@ -65,474 +47,229 @@ const Log = {
     test: (msg) => console.log(`${Kleuren.Magenta}[TESTMODUS] ${new Date().toLocaleTimeString()} - ${msg}${Kleuren.Reset}`)
 };
 
-/**
- * Voert een API fetch uit, maar probeert het opnieuw als het mislukt (retry logic).
- */
+// ============================================================================
+// 🛡️ BULLETPROOF FETCH (Voorkomt ECONNRESET en vastlopen)
+// ============================================================================
 async function fetchMetRetry(url, opties, retries = CONFIG.BOT.MAX_RETRIES) {
+    // 1. Voeg standaard altijd een User-Agent toe zodat de firewall ons niet blokkeert
+    const headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        ...opties.headers
+    };
+
     for (let i = 0; i < retries; i++) {
+        // 2. Maak een AbortController aan om een vastgelopen verbinding na 15 sec af te breken
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
         try {
-            const res = await fetch(url, opties);
-            if (!res.ok && res.status >= 500) {
-                throw new Error(`Serverfout ${res.status}`);
-            }
+            const res = await fetch(url, { 
+                ...opties, 
+                headers, 
+                signal: controller.signal // Koppel het afbreek-signaal aan de fetch
+            });
+            
+            clearTimeout(timeoutId); // Verzoek is geslaagd, stop de timeout timer
+
+            if (!res.ok && res.status >= 500) throw new Error(`Serverfout ${res.status}`);
             return res;
+
         } catch (error) {
-            if (i === retries - 1) throw error;
-            Log.waarschuwing(`Netwerk hapering (${error.message}). Poging ${i + 2}/${retries} over ${CONFIG.BOT.RETRY_DELAY_MS}ms...`);
+            clearTimeout(timeoutId); // Zorg dat de timer ook stopt bij een fout
+            
+            let errorMessage = error.message;
+            if (error.name === 'AbortError') errorMessage = "Verbinding duurde te lang (Timeout)";
+
+            if (i === retries - 1) throw new Error(errorMessage);
+            Log.waarschuwing(`Netwerk hapering (${errorMessage}). Poging ${i + 2}/${retries}...`);
             await new Promise(resolve => setTimeout(resolve, CONFIG.BOT.RETRY_DELAY_MS));
         }
     }
 }
 
 // ============================================================================
-// 3. GEHEUGEN BEHEER (Lokaal opslaan van statussen)
+// 3. GEHEUGEN BEHEER
 // ============================================================================
 class GeheugenBeheerder {
     static laad() {
         if (!fs.existsSync(GEHEUGEN_BESTAND)) {
-            Log.info("Geen bestaand geheugenbestand gevonden. Er wordt een nieuwe aangemaakt.");
             this.slaOp({});
             return {};
         }
         try {
-            const data = fs.readFileSync(GEHEUGEN_BESTAND, 'utf-8');
-            return JSON.parse(data);
+            return JSON.parse(fs.readFileSync(GEHEUGEN_BESTAND, 'utf-8'));
         } catch (e) {
-            Log.fout("Fout bij lezen geheugenbestand, we beginnen met een schone lei.", e.message);
             return {};
         }
     }
 
     static slaOp(data) {
-        try {
-            fs.writeFileSync(GEHEUGEN_BESTAND, JSON.stringify(data, null, 4));
-        } catch (e) {
-            Log.fout("Kan geheugen niet opslaan!", e.message);
-        }
+        fs.writeFileSync(GEHEUGEN_BESTAND, JSON.stringify(data, null, 4));
     }
 
-static voegToe(orderNummer, ticketId, miraklThreadId, klantNaam = null) { // <-- Hier 'klantNaam = null' toegevoegd!
+    static voegToe(orderNummer, miraklThreadId) {
         const geheugen = this.laad();
         geheugen[orderNummer] = {
-            ticket_id: ticketId,
             mirakl_thread_id: miraklThreadId,
-            klant_naam: klantNaam,
-            status: "wacht_op_label",
-            aangemaakt_op: new Date().toISOString(),
-            bijgewerkt_op: new Date().toISOString()
+            status: "verzonden",
+            verwerkt_op: new Date().toISOString()
         };
         this.slaOp(geheugen);
     }
 
-    static markeerAlsVerzonden(orderNummer) {
+    static isVerwerkt(orderNummer) {
         const geheugen = this.laad();
-        if (geheugen[orderNummer]) {
-            geheugen[orderNummer].status = "verzonden";
-            geheugen[orderNummer].bijgewerkt_op = new Date().toISOString();
-            this.slaOp(geheugen);
-        }
+        return !!geheugen[orderNummer];
     }
 }
 
 // ============================================================================
-// 4. SUPABASE DIENSTEN (Backend connecties)
+// 4. BERICHT GENERATOR & EXTRA API CALLS
 // ============================================================================
-class SupabaseService {
-    static async getToken() {
-        const res = await fetchMetRetry(`${CONFIG.SUPABASE.URL}/auth/v1/token?grant_type=password`, {
-            method: "POST",
-            headers: { "apikey": CONFIG.SUPABASE.API_KEY, "Content-Type": "application/json" },
-            body: JSON.stringify({ email: CONFIG.SUPABASE.EMAIL, password: CONFIG.SUPABASE.WACHTWOORD })
+async function haalKlantEmailViaOrder(orderNr) {
+    try {
+        const res = await fetchMetRetry(`${CONFIG.MIRAKL.ORDERS_URL}?order_ids=${orderNr}`, {
+            headers: { "Authorization": CONFIG.MIRAKL.API_KEY, "Accept": "application/json" }
         });
         
-        const data = await res.json();
-        if (!data.access_token) throw new Error("Geen geldig access token ontvangen van Supabase.");
-        return data.access_token;
-    }
-
-    static async controleerOfTicketBestaat(token, orderNummer) {
-        const res = await fetchMetRetry(`${CONFIG.SUPABASE.URL}/rest/v1/tickets?order_number=eq.${orderNummer}&select=id,ticket_number`, {
-            method: "GET",
-            headers: { "apikey": CONFIG.SUPABASE.API_KEY, "Authorization": `Bearer ${token}` }
-        });
-        return await res.json();
-    }
-
-    static async genereerNieuwTicketNummer(token) {
-        const res = await fetchMetRetry(`${CONFIG.SUPABASE.URL}/rest/v1/rpc/next_ticket_number`, {
-            method: "POST",
-            headers: { "apikey": CONFIG.SUPABASE.API_KEY, "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-            body: "{}"
-        });
-        const ruwNummer = await res.text();
-        return ruwNummer.replace(/^"|"$/g, '').trim(); 
-    }
-
-    /**
-     * ZOEKT AUTOMATISCH NAAR EEN GELDIG ID IN DE DATABASE
-     * Dit voorkomt Foreign Key fouten (zoals category_id constraint fouten).
-     */
-    static async haalEersteIdOp(token, tabellenNamen) {
-        for (const tabel of tabellenNamen) {
-            try {
-                const res = await fetchMetRetry(`${CONFIG.SUPABASE.URL}/rest/v1/${tabel}?select=id&limit=1`, {
-                    method: "GET",
-                    headers: { "apikey": CONFIG.SUPABASE.API_KEY, "Authorization": `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data && data.length > 0) return data[0].id; // Eerste de beste geldige ID
-                }
-            } catch (e) {
-                // Negeer fouten, probeer de volgende tabelnaam
+        if (res.ok) {
+            const data = await res.json();
+            if (data.orders && data.orders.length > 0 && data.orders[0].customer) {
+                return data.orders[0].customer.email || null;
             }
         }
-        return null;
+    } catch (e) {
+        Log.waarschuwing(`Kon ordergegevens voor ${orderNr} niet ophalen.`);
     }
+    return null;
+}
 
-    static async maakTicketAan(token, ticketNummer, orderNummer) {
-        // AUTOMATISCH GELDIGE IDs ZOEKEN!
-        const autoCategoryId = await this.haalEersteIdOp(token, ["categories", "ticket_categories", "category"]);
-        const autoStatusId = await this.haalEersteIdOp(token, ["statuses", "ticket_statuses", "status"]) || "st-1";
-        const autoCustomerId = await this.haalEersteIdOp(token, ["customers", "users"]) || "84608f8a-9435-4ce8-ac0f-b9f6115d8416";
+function genereerKlantBericht(orderNr, klantNaam, klantEmail) {
+    const uur = new Date().getHours();
+    let groetNL = (uur >= 6 && uur < 12) ? "Goedemorgen" : (uur >= 12 && uur < 18) ? "Goedemiddag" : "Goedenavond";
+    let groetEN = (uur >= 6 && uur < 12) ? "Good morning" : (uur >= 12 && uur < 18) ? "Good afternoon" : "Good evening";
 
-        if (autoCategoryId) Log.info(`🤖 Auto-detectie: category_id gevonden -> ${autoCategoryId}`);
-        
-        // Bouw de data op voor het nieuwe ticket
-        const ticketData = {
-            "ticket_number": ticketNummer,
-            "order_number": orderNummer,
-            "description": `Graag een retourlabel voor ${orderNummer}`,
-            "status_id": autoStatusId,
-            "customer_id": autoCustomerId
-        };
+    const isNederlands = orderNr.startsWith("2");
+    const naamNL = klantNaam || "klant";
+    const naamEN = klantNaam || "customer";
+    
+    const emailTekst = klantEmail || "[Uw e-mailadres waarmee u besteld heeft]";
 
-        // Voeg category_id alleen toe als we er eentje hebben gevonden
-        if (autoCategoryId) {
-            ticketData.category_id = autoCategoryId;
-        }
-
-        const res = await fetchMetRetry(`${CONFIG.SUPABASE.URL}/rest/v1/tickets?select=*`, {
-            method: "POST",
-            headers: { 
-                "apikey": CONFIG.SUPABASE.API_KEY, 
-                "Authorization": `Bearer ${token}`, 
-                "Content-Type": "application/json", 
-                "Prefer": "return=representation" 
-            },
-            body: JSON.stringify(ticketData)
-        });
-        
-        const data = await res.json();
-
-        // Vang database- en validatiefouten van Supabase netjes af
-        if (!res.ok || data.error || data.code) {
-            throw new Error(`Supabase weigerde de insert. Reden: ${data.message || JSON.stringify(data)}`);
-        }
-
-        if (!data || (Array.isArray(data) && data.length === 0)) {
-            throw new Error("Fout bij wegschrijven: geen data teruggekregen van de database.");
-        }
-
-        return Array.isArray(data) ? data[0] : data;
+    if (isNederlands) {
+        return `${groetNL} ${naamNL},\n\nU kunt uw retour eenvoudig aanmelden en een retourlabel aanmaken via de volgende link:\n${RETURN_URL}\n\nVul daar de volgende gegevens in:\n- Ordernummer: ${orderNr}\n- E-mailadres: ${emailTekst}\n\nMet vriendelijke groet,\n\nGijs, Campline`;
+    } else {
+        return `${groetEN} ${naamEN},\n\nYou can easily register your return and create a return label using the following link:\n${RETURN_URL}\n\nPlease enter the following details:\n- Order number: ${orderNr}\n- Email address: ${emailTekst}\n\nKind regards,\n\nGijs, Campline`;
     }
 }
 
 // ============================================================================
-// 5. HOOFDFUNCTIE 1: RETOUREN OPHALEN & TICKETS AANMAKEN
+// 5. HOOFDFUNCTIE: RETOUREN VERWERKEN & BERICHTEN STUREN
 // ============================================================================
-async function stap1_CheckNieuweRetouren() {
-    Log.info("=== 🔄 STAP 1: Controleren op nieuwe retouren via Mirakl ===");
+async function verwerkRetouren() {
+    Log.info("=== 🔄 Controleren op nieuwe retouren via Mirakl ===");
     
     try {
-        const miraklRes = await fetchMetRetry(CONFIG.MIRAKL.URL, { 
+        const miraklRes = await fetchMetRetry(CONFIG.MIRAKL.INBOX_URL, { 
             headers: { "Authorization": CONFIG.MIRAKL.API_KEY, "Accept": "application/json" } 
         });
         
-        if (!miraklRes.ok) {
-            Log.fout(`Kan Mirakl niet bereiken (HTTP ${miraklRes.status}). Controleer je API-key!`);
-            return;
-        }
+        if (!miraklRes.ok) return Log.fout(`Kan Mirakl niet bereiken (HTTP ${miraklRes.status}).`);
 
         const miraklData = await miraklRes.json();
         const alleThreads = miraklData.data || miraklData.items || miraklData.threads || [];
-
-        if (alleThreads.length === 0) {
-            return Log.waarschuwing("De inbox in Mirakl is volledig leeg.");
-        }
-
+        
         const retourThreads = alleThreads.filter(thread => {
             const topic = thread.topic?.value?.toLowerCase() || "";
             return topic.includes("retour") || topic.includes("return") || topic.includes("rücksend");
         });
 
-        // Sorteer op datum (nieuwste eerst)
-        retourThreads.sort((a, b) => new Date(b.date_updated || b.date_created) - new Date(a.date_updated || a.date_created));
+        if (retourThreads.length === 0) return Log.info("💤 Geen nieuwe retourberichten gevonden.");
 
-        if (retourThreads.length === 0) {
-            return Log.info("💤 Geen nieuwe retourberichten gevonden.");
-        }
+        retourThreads.sort((a, b) => new Date(a.date_updated || a.date_created) - new Date(b.date_updated || b.date_created));
 
-        const meestRecenteThread = retourThreads[0];
-        let orderNummer = "ONBEKEND";
-        let gevondenKlantNaam = null;
-        
-        // 1. Ordernummer ophalen
-        if (meestRecenteThread.entities && meestRecenteThread.entities.length > 0) {
-            orderNummer = meestRecenteThread.entities[0].id || meestRecenteThread.entities[0].label;
-        }
-
- // 2. Klantnaam ophalen (Robuuste manier: we checken alle mogelijke Mirakl velden)
-        if (meestRecenteThread.customer && meestRecenteThread.customer.firstname) {
-            gevondenKlantNaam = meestRecenteThread.customer.firstname;
-        } else if (meestRecenteThread.customer && meestRecenteThread.customer.name) {
-            gevondenKlantNaam = meestRecenteThread.customer.name.split(" ")[0];
-        } else if (meestRecenteThread.customer_name) {
-            gevondenKlantNaam = meestRecenteThread.customer_name.split(" ")[0];
-        } else if (meestRecenteThread.participants && Array.isArray(meestRecenteThread.participants)) {
-            const klant = meestRecenteThread.participants.find(p => p.type === 'CUSTOMER' || p.role === 'CUSTOMER');
-            if (klant && klant.name) {
-                gevondenKlantNaam = klant.name.split(" ")[0]; 
-            }
-        }
-
-        Log.info(`Meest recente retour gevonden! Order: ${orderNummer} (Klant: ${gevondenKlantNaam || "Onbekend"})`);
-
-        let geheugen = GeheugenBeheerder.laad();
-        if (geheugen[orderNummer]) {
-            if (geheugen[orderNummer].status === "verzonden") {
-                return Log.waarschuwing(`⏩ Order ${orderNummer} staat al op verzonden in ons systeem.`);
-            } else {
-                return Log.waarschuwing(`⏩ Order ${orderNummer} is al bekend en wacht op een label.`);
-            }
-        }
-
-        const token = await SupabaseService.getToken();
-        const bestaandeTickets = await SupabaseService.controleerOfTicketBestaat(token, orderNummer);
-
-        let ticketId;
-
-        if (bestaandeTickets && bestaandeTickets.length > 0) {
-            const ticket = bestaandeTickets[0];
-            ticketId = ticket.id;
-            Log.succes(`Ticket voor order ${orderNummer} bestaat al in de database (TicketNr: ${ticket.ticket_number}).`);
-        } else {
-            Log.info(`Geen ticket gevonden voor ${orderNummer}. Nieuwe aanmaken...`);
-            const nieuwTicketNummer = await SupabaseService.genereerNieuwTicketNummer(token);
-            const nieuwTicket = await SupabaseService.maakTicketAan(token, nieuwTicketNummer, orderNummer);
-            ticketId = nieuwTicket.id;
-            Log.succes(`✅ Nieuw ticket succesvol aangemaakt! ID: ${ticketId}`);
-        }
-
-        GeheugenBeheerder.voegToe(orderNummer, ticketId, meestRecenteThread.id, gevondenKlantNaam);
-        Log.succes(`💾 Order ${orderNummer} is opgeslagen in geheugen om op een label te wachten.`);
-
-    } catch (e) {
-        Log.fout("Er trad een fout op tijdens Stap 1:", e.message);
-    }
-}
-
-// ============================================================================
-// 6. HOOFDFUNCTIE 2: LABELS ZOEKEN (WATERDICHT) EN VERZENDEN
-// ============================================================================
-async function zoekLabelWaterdicht(token, orderNr) {
-    // 1. Haal LIVE alle tickets op die aan deze order gekoppeld zijn
-    const ticketsRes = await fetchMetRetry(`${CONFIG.SUPABASE.URL}/rest/v1/tickets?order_number=eq.${orderNr}&select=id,ticket_number`, {
-        method: "GET",
-        headers: { "apikey": CONFIG.SUPABASE.API_KEY, "Authorization": `Bearer ${token}` }
-    });
-    
-    const gekoppeldeTickets = await ticketsRes.json();
-
-    if (!gekoppeldeTickets || gekoppeldeTickets.length === 0) {
-        return null; 
-    }
-
-    // 2. Doorzoek de opslagmappen van AL deze tickets
-    for (const ticket of gekoppeldeTickets) {
-        const filesRes = await fetchMetRetry(`${CONFIG.SUPABASE.URL}/storage/v1/object/list/${BUCKET_NAME}`, {
-            method: "POST",
-            headers: { "apikey": CONFIG.SUPABASE.API_KEY, "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-            body: JSON.stringify({ prefix: `${ticket.id}/`, limit: 10 })
-        });
-        
-        const bestandenLijst = await filesRes.json();
-        const echteBestanden = Array.isArray(bestandenLijst) ? bestandenLijst.filter(f => f.id) : [];
-
-        if (echteBestanden.length > 0) {
-            const gevondenBestand = echteBestanden[0]; 
-            Log.info(`💡 Label gevonden in map van ticket ${ticket.ticket_number} (${ticket.id})`);
-            
-            return { 
-                pad: `${ticket.id}/${gevondenBestand.name}`, 
-                bestandsNaam: gevondenBestand.name 
-            };
-        }
-    }
-
-    return null;
-}
-
-// HULPFUNCTIE: BOUW HET BERICHT OP BASIS VAN TIJD EN ORDER
-function genereerKlantBericht(orderNr, klantNaam = null) {
-    const uur = new Date().getHours();
-    let groetNL, groetEN;
-
-    // Tijd bepalen (Morgen / Middag / Avond)
-    if (uur >= 6 && uur < 12) {
-        groetNL = "Goedemorgen";
-        groetEN = "Good morning";
-    } else if (uur >= 12 && uur < 18) {
-        groetNL = "Goedemiddag";
-        groetEN = "Good afternoon";
-    } else {
-        groetNL = "Goedenavond";
-        groetEN = "Good evening";
-    }
-
-    // Is het Nederlands? (Begint orderNr met een 2?)
-    const isNederlands = orderNr.startsWith("2");
-
-    // Stel de naam in (als we geen naam hebben, gebruik 'klant' / 'customer')
-    const naamNL = klantNaam ? klantNaam : "klant";
-    const naamEN = klantNaam ? klantNaam : "customer";
-
-    // Bouw het daadwerkelijke bericht
-    if (isNederlands) {
-        return `${groetNL} ${naamNL},\n\nHierbij uw retourlabel, deze is 5 dagen geldig.\n\nMet vriendelijke groet,\n\nGijs, Campline`;
-    } else {
-        return `${groetEN} ${naamEN},\n\nHere is your return label, it is valid for 5 days.\n\nKind regards,\n\nGijs, Campline`;
-    }
-}
-
-async function stap2_VerwerkEnVerzendLabels() {
-    Log.info("\n=== 📤 STAP 2: Controleren of er labels klaarstaan om te verzenden ===");
-    
-    try {
-        const geheugen = GeheugenBeheerder.laad();
-        const teDoen = Object.keys(geheugen).filter(orderNr => geheugen[orderNr].status === "wacht_op_label");
-
-        if (teDoen.length === 0) {
-            return Log.info("💤 Er zijn momenteel geen tickets die wachten op een verzendlabel.");
-        }
-
-        const token = await SupabaseService.getToken();
-
-        for (const orderNr of teDoen) {
-            const data = geheugen[orderNr];
-            Log.info(`🔍 Zoeken naar label voor order ${orderNr}...`);
-
-            const labelData = await zoekLabelWaterdicht(token, orderNr);
-
-            if (!labelData) {
-                Log.waarschuwing(`⚠️ Nog geen label-bestand gevonden voor order ${orderNr}. We wachten af.`);
-                continue; 
+        for (const thread of retourThreads) {
+            let orderNummer = "ONBEKEND";
+            if (thread.entities && thread.entities.length > 0) {
+                orderNummer = thread.entities[0].id || thread.entities[0].label;
             }
 
-            Log.succes(`✅ Bestand "${labelData.bestandsNaam}" gevonden! Bezig met downloaden...`);
+            if (orderNummer === "ONBEKEND") continue;
+            if (GeheugenBeheerder.isVerwerkt(orderNummer)) continue;
 
-            const pdfRes = await fetchMetRetry(`${CONFIG.SUPABASE.URL}/storage/v1/object/authenticated/${BUCKET_NAME}/${labelData.pad}`, {
-                method: "GET",
-                headers: { "apikey": CONFIG.SUPABASE.API_KEY, "Authorization": `Bearer ${token}` }
-            });
+            let klantNaam = null;
+            let klantEmail = null;
+
+            if (thread.customer?.firstname) klantNaam = thread.customer.firstname;
+            else if (thread.customer?.name) klantNaam = thread.customer.name.split(" ")[0];
+            else if (thread.customer_name) klantNaam = thread.customer_name.split(" ")[0];
+
+            if (thread.customer?.email) klantEmail = thread.customer.email;
+            else if (thread.customer_email) klantEmail = thread.customer_email;
             
-            if (!pdfRes.ok) throw new Error(`Download van Supabase mislukt met HTTP ${pdfRes.status}`);
+            if (!klantEmail && thread.participants) {
+                const klant = thread.participants.find(p => p.type === 'CUSTOMER' || p.role === 'CUSTOMER');
+                if (klant?.email) klantEmail = klant.email;
+                if (!klantNaam && klant?.name) klantNaam = klant.name.split(" ")[0];
+            }
 
-            const arrayBuffer = await pdfRes.arrayBuffer();
-            const pdfBuffer = Buffer.from(arrayBuffer);
+            if (!klantEmail) {
+                klantEmail = await haalKlantEmailViaOrder(orderNummer);
+            }
+
+            Log.info(`Nieuwe retour gevonden! Order: ${orderNummer} | Email: ${klantEmail || "NIET GEVONDEN IN ORDER API"}`);
             
-            Log.info(`📥 PDF succesvol gedownload. Grootte: ${(pdfBuffer.length / 1024).toFixed(2)} KB.`);
+            const dynamischBericht = genereerKlantBericht(orderNummer, klantNaam, klantEmail);
 
-            // DYNAMISCH BERICHT GENEREREN!
-            const dynamischBericht = genereerKlantBericht(orderNr, data.klant_naam);
-
-            Log.info(`🚀 Upload voorbereiden via Mirakl Inbox API voor order: ${orderNr}...`);
-            const form = new FormData();
-            
-            // 1. De JSON body voor het bericht (gericht aan de klant)
-            const jsonPayload = JSON.stringify({ 
-                "to": [ { "type": "CUSTOMER" } ],
-                "body": dynamischBericht
-            });
-
-            // 2. De Buffer-truc: verplicht Node.js om de Content-Type correct door te geven (voorkomt de 415 error!)
-            form.append("message_input", Buffer.from(jsonPayload), { 
-                filename: "message.json",
-                contentType: "application/json" 
-            });
-            
-            // 3. Voeg de PDF toe
-            form.append("files", pdfBuffer, { 
-                filename: labelData.bestandsNaam, 
-                contentType: "application/pdf" 
-            });
-
-            // DE TESTMODUS SCHAKELAAR
             if (TEST_MODUS) {
-                Log.test("=========================================================================");
-                Log.test(`TESTMODUS IS ACTIEF!`);
-                Log.test(`Actie: Verzoek sturen naar Mirakl Inbox Thread`);
-                Log.test(`Gegenereerd bericht:\n${dynamischBericht}`);
-                Log.test(`-> TEST_MODUS staat aan, dus upload naar klant is geannuleerd.`);
-                Log.test("=========================================================================");
-                continue; 
+                Log.test(`Bericht dat verzonden zou worden naar thread ${thread.id}:\n\n${dynamischBericht}\n`);
+                GeheugenBeheerder.voegToe(orderNummer, thread.id);
+                continue;
             }
 
-            // ECHT VERZENDEN NAAR MIRAKL
-            Log.info("Uploading naar Mirakl Inbox... Let op, dit gaat naar de klant!");
-            
-            // HET CORRECTE ENDPOINT (message ZONDER DE 'S'! 🎉)
-            const uploadUrl = `https://marketplace-obelink.mirakl.net/api/inbox/threads/${data.mirakl_thread_id}/message`;
+            Log.info(`🚀 Bericht verzenden naar Mirakl Inbox...`);
+            const uploadUrl = `${CONFIG.MIRAKL.INBOX_URL}/${thread.id}/message`;
 
             const replyRes = await fetchMetRetry(uploadUrl, {
                 method: "POST",
                 headers: { 
                     "Authorization": CONFIG.MIRAKL.API_KEY, 
-                    "Accept": "application/json", 
-                    ...form.getHeaders() 
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
                 },
-                body: form
+                body: JSON.stringify({
+                    "to": [ { "type": "CUSTOMER" } ],
+                    "body": dynamischBericht
+                })
             });
 
             if (replyRes.ok) {
-                Log.succes(`🎉 BOOM! Label voor order ${orderNr} is succesvol naar de klant gestuurd via Mirakl!`);
-                GeheugenBeheerder.markeerAlsVerzonden(orderNr);
+                Log.succes(`🎉 Return-link voor order ${orderNummer} succesvol naar de klant gestuurd!`);
+                GeheugenBeheerder.voegToe(orderNummer, thread.id);
             } else {
                 const errorText = await replyRes.text();
-                Log.fout(`❌ Fout bij uploaden (HTTP ${replyRes.status} ${replyRes.statusText}):`, errorText || "(Lege response)");
+                Log.fout(`❌ Fout bij uploaden (HTTP ${replyRes.status}):`, errorText);
             }
         }
     } catch (e) {
-        Log.fout("Er trad een fout op tijdens Stap 2:", e.message);
+        Log.fout("Er trad een fout op:", e.message);
     }
 }
 
 // ============================================================================
-// 7. INITIALISATIE & RUNNER
+// 6. INITIALISATIE & RUNNER
 // ============================================================================
 async function startBotApplicatie() {
     console.clear();
     Log.info("==========================================================");
-    Log.info("🚀 AedonTrading / Obelink Mirakl Bot is Opgestart!");
-    Log.info(`📍 Geheugen locatie: ${GEHEUGEN_BESTAND}`);
-    if (TEST_MODUS) Log.waarschuwing("🚨 TESTMODUS IS AAN - Berichten worden NIET echt verstuurd naar klanten!");
+    Log.info("🚀 Obelink Direct-Link Retour Bot Opgestart!");
+    if (TEST_MODUS) Log.waarschuwing("🚨 TESTMODUS IS AAN - Berichten worden NIET echt verstuurd!");
     Log.info("==========================================================\n");
 
-    await stap1_CheckNieuweRetouren();
-    await stap2_VerwerkEnVerzendLabels();
+    await verwerkRetouren();
 
     setInterval(async () => {
-        await stap1_CheckNieuweRetouren();
+        await verwerkRetouren();
     }, CONFIG.BOT.CHECK_RETOUREN_INTERVAL_MS);
-
-    setInterval(async () => {
-        await stap2_VerwerkEnVerzendLabels();
-    }, CONFIG.BOT.CHECK_LABELS_INTERVAL_MS);
-    
-    Log.info(`⏳ Intervals ingesteld op 1 minuut. Bot draait nu op de achtergrond...`);
 }
 
-// ============================================================================
-// 8. LET'S GO!
-// ============================================================================
 startBotApplicatie();
