@@ -304,6 +304,25 @@ async function verwerkRetouren() {
 }
 
 // ============================================================================
+// 7. WEBSERVER 
+// ============================================================================
+const PORT = process.env.PORT || 8000;
+const server = http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('Obelink Retour Bot draait succesvol op de achtergrond!\n');
+});
+
+server.on('error', (e) => {
+    if (e.code === 'EADDRINUSE') {
+        // Poort in gebruik? Geen probleem
+    }
+});
+
+server.listen(PORT, () => {
+    console.log(`🚀 Server started: http://localhost:${PORT}`);
+});
+
+// ============================================================================
 // 8. INITIALISATIE & RUNNER
 // ============================================================================
 async function startBotApplicatie() {
