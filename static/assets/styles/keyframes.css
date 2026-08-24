@@ -38,6 +38,30 @@
     }
 }
 
+::view-transition-group(root) {
+    animation-duration: 220ms;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation-duration: 220ms;
+    background-color: transparent;
+    mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+    animation: none;
+}
+
+::view-transition-new(root) {
+    animation-name: view-transition-enter;
+}
+
+@keyframes view-transition-enter {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 /* Fade in animation of elements */
 
 @supports (animation-timeline: view()) {

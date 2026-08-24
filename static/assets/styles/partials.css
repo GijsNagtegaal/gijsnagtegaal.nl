@@ -80,6 +80,7 @@ header.topnav {
         }
 
         .logo {
+            max-width: 5rem;
             justify-self: start;
         }
 
@@ -121,9 +122,7 @@ header.topnav {
         }
 
         &:focus-visible {
-            outline: none;
             background-color: var(--medium-background);
-            border: 2px solid var(--dark-text);
         }
     }
 
@@ -150,6 +149,11 @@ header.topnav {
         width: fit-content;
         color: var(--accent-header);
         cursor: pointer;
+
+        &:focus-visible {
+            outline: 3px solid var(--secondary);
+            outline-offset: 3px;
+        }
 
         svg {
             height: 3em;
