@@ -200,7 +200,7 @@ article.portfolio-item {
     border-radius: var(--border-card);
     outline: 3px solid var(--accent-card);
 
-    header.tags {
+    section.tags {
         display: flex;
         width: 100%;
         

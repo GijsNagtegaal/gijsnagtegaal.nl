@@ -3,20 +3,19 @@
         {% if project.image %}
             {% render 'partials/picture.liquid',
                 imagesrc: project.image,
-                width: "350",
-                height: "200",
+                width: "650",
+                height: "400",
                 alt: project.Opdrachtgever,
                 class: "landscape",
                 loading: "lazy"
             %}
         {% endif %}
-    
-        <!-- tags array -->
-        <header class="tags">
+
+        <section class="tags">
             {% for tag in project.tags %}
                 <span class="tag">{{ tag }}</span>
             {% endfor %}
-        </header>
+        </section>
 
         <section class="contentwrapper">
             <h3>{{ project.type_site }} for {{ project.Opdrachtgever }}</h3>

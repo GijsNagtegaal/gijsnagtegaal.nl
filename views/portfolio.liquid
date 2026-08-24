@@ -1,12 +1,10 @@
 {% render 'partials/head.liquid' %}
 {% render 'partials/header.liquid' %}
 <main class="portfolio">
-    <section class="portfolio-intro">
-        <h1>Portfolio</h1>
-        <p>Here is a selection of projects I have worked on.</p>
-    </section>
+    <h1 class="breathingspace">Portfolio</h1>
+    <p class="breathingspace">Here is a selection of projects I have worked on.</p>
 
-<section class="workwrapper">
+<section class="workwrapper breathingspace">
     {% for item in portfolioItems %}
         {% render 'partials/portfolio-item.liquid', project: item, customclass: "scroll-animated" %}
     {% endfor %}

@@ -30,8 +30,8 @@ body {
     /* --------- font sizes --------- */
     --paragraph: clamp(1.1rem, 2vw, 1.2rem);
 	--heading-small: clamp(1.2rem, 2vw, 1rem);
-	--heading-medium: clamp(1.5rem, 2vw, 2.3rem);
-	--heading-big: clamp(1.4rem, 2.7vw, 2.2rem);
+	--heading-medium: clamp(1.5rem, 2vw, 1.8rem);
+	--heading-big: clamp(1.4rem, 2vw, 2rem);
 
     /* --------- colors --------- */
 
@@ -69,14 +69,18 @@ body {
 }
 
 main {
-    margin: 1rem;
 
-    @media (min-width: 800px) {
-        margin: 2rem;
+    width: 90%;
+    margin: 0 auto;
+
+    @media (min-width: 600px) {
+        width: 85%;
+        margin: 0 auto;
     }
 
     @media (min-width: 1200px) {
-        margin: 4rem;
+        width: 80%;
+        margin: 0 auto;
     }
 }
 
@@ -175,4 +179,10 @@ a, button {
             }
         }
     }
+}
+
+/* can be applied to all. html elements to give it all equal margin top and bottom */
+
+.breathingspace {
+    margin-block: .5rem;
 }
