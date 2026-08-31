@@ -25,13 +25,13 @@ img, video {
 body {
 
     color-scheme: light dark;
-    transition: background-color, color, .3s linear;
+    transition: background-color .3s linear, color .3s linear;
 
     /* --------- font sizes --------- */
     --paragraph: clamp(1.1rem, 2vw, 1.2rem);
 	--heading-small: clamp(1.2rem, 2vw, 1rem);
-	--heading-medium: clamp(1.5rem, 2vw, 2.3rem);
-	--heading-big: clamp(1.4rem, 2.7vw, 2.2rem);
+	--heading-medium: clamp(1.5rem, 2vw, 1.8rem);
+	--heading-big: clamp(1.4rem, 2vw, 2rem);
 
     /* --------- colors --------- */
 
@@ -69,14 +69,18 @@ body {
 }
 
 main {
-    margin: 1rem;
 
-    @media (min-width: 800px) {
-        margin: 2rem;
+    width: 90%;
+    margin: 0 auto;
+
+    @media (min-width: 600px) {
+        width: 85%;
+        margin: 0 auto;
     }
 
     @media (min-width: 1200px) {
-        margin: 4rem;
+        width: 80%;
+        margin: 0 auto;
     }
 }
 
@@ -127,6 +131,8 @@ section.workwrapper {
 a, button {
     text-decoration: none;
     font-size: var(--paragraph);
+    border: 0;
+    cursor: pointer;
 
     
     &.primary {
@@ -175,4 +181,28 @@ a, button {
             }
         }
     }
+}
+
+a:focus-visible,
+button:focus-visible {
+    outline: 3px solid var(--secondary);
+    outline-offset: 3px;
+}
+
+a.primary:hover,
+a.primary:focus-visible {
+    transform: translate(-2px, 2px);
+    box-shadow: -1px 1px 0 0 var(--primary);
+    background-color: var(--primary);
+}
+
+a.project:hover,
+a.project:focus-visible {
+    background-color: var(--primary);
+}
+
+/* can be applied to all. html elements to give it all equal margin top and bottom */
+
+.breathingspace {
+    margin-block: .5rem;
 }
