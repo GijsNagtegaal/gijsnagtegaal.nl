@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * OBELINK RETOUR BOT - DIRECT LINK EDITIE 🚀 (DE DEFINITIEVE MIRAKL-FIX)
+ * OBELINK RETOUR BOT - DIRECT LINK EDITIE 🚀 (MET ORDER-API FIX & ANTI-HANG)
  * ============================================================================
  */
 
@@ -8,12 +8,11 @@ import fetch from 'node-fetch';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import http from 'http';
 
 // ============================================================================
 // 1. CONFIGURATIE & INSTELLINGEN
 // ============================================================================
-const TEST_MODUS = false; 
+const TEST_MODUS = true; 
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const GEHEUGEN_BESTAND = path.join(__dirname, 'geheugen.json');
@@ -21,15 +20,14 @@ const RETURN_URL = "https://www.clicktoreturn.com/v2:d87cd76604cacfe0e273aa08cf7
 
 const CONFIG = {
     MIRAKL: {
-        INBOX_URL: "https://marketplace-obelink.mirakl.net/api/inbox/threads?limit=50",
+        INBOX_URL: "https://marketplace-obelink.mirakl.net/api/inbox/threads",
         ORDERS_URL: "https://marketplace-obelink.mirakl.net/api/orders",
         API_KEY: "b57a6ad1-2004-4dda-8f45-3576b563434f"
     },
     BOT: {
         CHECK_RETOUREN_INTERVAL_MS: 1 * 60 * 1000, 
         MAX_RETRIES: 3,                             
-        RETRY_DELAY_MS: 2000,
-        MAX_LEEFTIJD_UREN: 48 
+        RETRY_DELAY_MS: 2000                        
     }
 };
 
@@ -50,55 +48,47 @@ const Log = {
 };
 
 // ============================================================================
-// 3. BULLETPROOF FETCH
+// 🛡️ BULLETPROOF FETCH (Voorkomt ECONNRESET en vastlopen)
 // ============================================================================
-async function fetchMetRetry(url, opties, retries = CONFIG.BOT.MAX_RETRIES, isJson = false) {
+async function fetchMetRetry(url, opties, retries = CONFIG.BOT.MAX_RETRIES) {
+    // 1. Voeg standaard altijd een User-Agent toe zodat de firewall ons niet blokkeert
     const headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         ...opties.headers
     };
 
     for (let i = 0; i < retries; i++) {
+        // 2. Maak een AbortController aan om een vastgelopen verbinding na 15 sec af te breken
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 20000); 
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
 
         try {
-            const res = await fetch(url, { ...opties, headers, signal: controller.signal });
+            const res = await fetch(url, { 
+                ...opties, 
+                headers, 
+                signal: controller.signal // Koppel het afbreek-signaal aan de fetch
+            });
             
-            if (!res.ok) {
-                const errorBody = await res.text().catch(() => "");
-                throw new Error(`Serverfout HTTP ${res.status}. Response: ${errorBody}`);
-            }
+            clearTimeout(timeoutId); // Verzoek is geslaagd, stop de timeout timer
 
-            if (isJson) {
-                const data = await res.json();
-                clearTimeout(timeoutId); 
-                return data; 
-            }
-
-            clearTimeout(timeoutId); 
+            if (!res.ok && res.status >= 500) throw new Error(`Serverfout ${res.status}`);
             return res;
 
         } catch (error) {
-            clearTimeout(timeoutId); 
+            clearTimeout(timeoutId); // Zorg dat de timer ook stopt bij een fout
             
             let errorMessage = error.message;
-            if (error.name === 'AbortError' || error.type === 'aborted') {
-                errorMessage = "Download van data duurde te lang (Timeout > 20s)";
-            }
+            if (error.name === 'AbortError') errorMessage = "Verbinding duurde te lang (Timeout)";
 
-            if (i === retries - 1) {
-                throw new Error(errorMessage);
-            }
-            
-            Log.waarschuwing(`Netwerk hapering naar ${url.split('?')[0]} (${errorMessage}). Poging ${i + 2}/${retries}...`);
+            if (i === retries - 1) throw new Error(errorMessage);
+            Log.waarschuwing(`Netwerk hapering (${errorMessage}). Poging ${i + 2}/${retries}...`);
             await new Promise(resolve => setTimeout(resolve, CONFIG.BOT.RETRY_DELAY_MS));
         }
     }
 }
 
 // ============================================================================
-// 4. GEHEUGEN BEHEER
+// 3. GEHEUGEN BEHEER
 // ============================================================================
 class GeheugenBeheerder {
     static laad() {
@@ -134,25 +124,22 @@ class GeheugenBeheerder {
 }
 
 // ============================================================================
-// 5. BERICHT GENERATOR & EXTRA API CALLS
+// 4. BERICHT GENERATOR & EXTRA API CALLS
 // ============================================================================
 async function haalKlantEmailViaOrder(orderNr) {
     try {
-        const data = await fetchMetRetry(`${CONFIG.MIRAKL.ORDERS_URL}?order_ids=${orderNr}`, {
+        const res = await fetchMetRetry(`${CONFIG.MIRAKL.ORDERS_URL}?order_ids=${orderNr}`, {
             headers: { "Authorization": CONFIG.MIRAKL.API_KEY, "Accept": "application/json" }
-        }, CONFIG.BOT.MAX_RETRIES, true);
+        });
         
-        if (data && data.orders && data.orders.length > 0) {
-            const order = data.orders[0];
-            const klant = order.customer;
-            
-            // Pakt direct de lange Mirakl code, of een regulier e-mailadres als dat er toevallig is
-            let email = order?.customer_notification_email || klant?.email || klant?.customer_email || null;
-
-            return email;
+        if (res.ok) {
+            const data = await res.json();
+            if (data.orders && data.orders.length > 0 && data.orders[0].customer) {
+                return data.orders[0].customer.email || null;
+            }
         }
     } catch (e) {
-        Log.waarschuwing(`Kon ordergegevens voor ${orderNr} niet ophalen. Reden: ${e.message}`);
+        Log.waarschuwing(`Kon ordergegevens voor ${orderNr} niet ophalen.`);
     }
     return null;
 }
@@ -166,8 +153,7 @@ function genereerKlantBericht(orderNr, klantNaam, klantEmail) {
     const naamNL = klantNaam || "klant";
     const naamEN = klantNaam || "customer";
     
-    // Als we écht geen email hebben, gebruiken we dit als uiterste fallback
-    const emailTekst = klantEmail || "[Uw e-mailadres of Mirakl-code]";
+    const emailTekst = klantEmail || "[Uw e-mailadres waarmee u besteld heeft]";
 
     if (isNederlands) {
         return `${groetNL} ${naamNL},\n\nU kunt uw retour eenvoudig aanmelden en een retourlabel aanmaken via de volgende link:\n${RETURN_URL}\n\nVul daar de volgende gegevens in:\n- Ordernummer: ${orderNr}\n- E-mailadres: ${emailTekst}\n\nMet vriendelijke groet,\n\nGijs, Campline`;
@@ -177,72 +163,52 @@ function genereerKlantBericht(orderNr, klantNaam, klantEmail) {
 }
 
 // ============================================================================
-// 6. HOOFDFUNCTIE: RETOUREN VERWERKEN & BERICHTEN STUREN
+// 5. HOOFDFUNCTIE: RETOUREN VERWERKEN & BERICHTEN STUREN
 // ============================================================================
 async function verwerkRetouren() {
     Log.info("=== 🔄 Controleren op nieuwe retouren via Mirakl ===");
     
     try {
-        const miraklData = await fetchMetRetry(CONFIG.MIRAKL.INBOX_URL, { 
+        const miraklRes = await fetchMetRetry(CONFIG.MIRAKL.INBOX_URL, { 
             headers: { "Authorization": CONFIG.MIRAKL.API_KEY, "Accept": "application/json" } 
-        }, CONFIG.BOT.MAX_RETRIES, true);
+        });
         
-        if (!miraklData || miraklData.errors || miraklData.error) {
-            return Log.fout(`Mirakl API weigert aanvraag!`, JSON.stringify(miraklData.errors || "Geen data"));
-        }
+        if (!miraklRes.ok) return Log.fout(`Kan Mirakl niet bereiken (HTTP ${miraklRes.status}).`);
 
-        let alleThreads = miraklData.data || miraklData.items || miraklData.threads || miraklData.collection || [];
-        
-        if (alleThreads.length === 0 && !Array.isArray(miraklData)) {
-            for (const key of Object.keys(miraklData)) {
-                if (Array.isArray(miraklData[key])) { alleThreads = miraklData[key]; break; }
-            }
-        }
-        
-        if (alleThreads.length === 0) return Log.info("💤 Geen berichten gevonden in de API response.");
-
-        const nu = new Date();
+        const miraklData = await miraklRes.json();
+        const alleThreads = miraklData.data || miraklData.items || miraklData.threads || [];
         
         const retourThreads = alleThreads.filter(thread => {
-            const threadDatum = new Date(thread.date_updated || thread.date_created);
-            const urenOud = (nu - threadDatum) / (1000 * 60 * 60);
-            if (urenOud > CONFIG.BOT.MAX_LEEFTIJD_UREN) return false;
-
-            if (thread.status === 'CLOSED') return false;
-            if (thread.has_unread_messages === false) return false; 
-
-            const topic = thread.topic?.value?.toLowerCase() || thread.topic?.code?.toLowerCase() || "";
+            const topic = thread.topic?.value?.toLowerCase() || "";
             return topic.includes("retour") || topic.includes("return") || topic.includes("rücksend");
         });
 
-        if (retourThreads.length === 0) return Log.info(`💤 Geen RECENTE open retour-aanvragen gevonden (jonger dan 48 uur).`);
+        if (retourThreads.length === 0) return Log.info("💤 Geen nieuwe retourberichten gevonden.");
 
-        let gevonden = 0;
-        let nieuwVerwerkt = 0;
+        retourThreads.sort((a, b) => new Date(a.date_updated || a.date_created) - new Date(b.date_updated || b.date_created));
 
         for (const thread of retourThreads) {
             let orderNummer = "ONBEKEND";
-            if (thread.entities && thread.entities.length > 0) orderNummer = thread.entities[0].id || thread.entities[0].label;
-            
+            if (thread.entities && thread.entities.length > 0) {
+                orderNummer = thread.entities[0].id || thread.entities[0].label;
+            }
+
             if (orderNummer === "ONBEKEND") continue;
-            
-            gevonden++;
-
             if (GeheugenBeheerder.isVerwerkt(orderNummer)) continue;
-
-            nieuwVerwerkt++;
 
             let klantNaam = null;
             let klantEmail = null;
 
             if (thread.customer?.firstname) klantNaam = thread.customer.firstname;
             else if (thread.customer?.name) klantNaam = thread.customer.name.split(" ")[0];
+            else if (thread.customer_name) klantNaam = thread.customer_name.split(" ")[0];
+
+            if (thread.customer?.email) klantEmail = thread.customer.email;
+            else if (thread.customer_email) klantEmail = thread.customer_email;
             
             if (!klantEmail && thread.participants) {
-                const klant = thread.participants.find(p => p.type === 'CUSTOMER');
-                if (klant?.email) {
-                     klantEmail = klant.email;
-                }
+                const klant = thread.participants.find(p => p.type === 'CUSTOMER' || p.role === 'CUSTOMER');
+                if (klant?.email) klantEmail = klant.email;
                 if (!klantNaam && klant?.name) klantNaam = klant.name.split(" ")[0];
             }
 
@@ -250,80 +216,47 @@ async function verwerkRetouren() {
                 klantEmail = await haalKlantEmailViaOrder(orderNummer);
             }
 
-            Log.info(`Nieuwe retour wordt klaargezet! Order: ${orderNummer}`);
+            Log.info(`Nieuwe retour gevonden! Order: ${orderNummer} | Email: ${klantEmail || "NIET GEVONDEN IN ORDER API"}`);
             
             const dynamischBericht = genereerKlantBericht(orderNummer, klantNaam, klantEmail);
 
             if (TEST_MODUS) {
-                Log.test(`[TEST] Bericht dat verzonden zou worden naar thread ${thread.id}:\n${dynamischBericht}\n`);
+                Log.test(`Bericht dat verzonden zou worden naar thread ${thread.id}:\n\n${dynamischBericht}\n`);
                 GeheugenBeheerder.voegToe(orderNummer, thread.id);
                 continue;
             }
 
-            Log.info(`🚀 Bericht verzenden naar Mirakl Inbox voor order ${orderNummer}...`);
-            
-            // ----------------------------------------------------------------
-            // HIER IS DE MAGIC FIX ✨ (Multipart Form Data met message_input)
-            // ----------------------------------------------------------------
-            const uploadUrl = `https://marketplace-obelink.mirakl.net/api/inbox/threads/${thread.id}/message`; 
-            
-            // 1. Maak de JSON data die Mirakl verwacht
-            const payload = JSON.stringify({
-                "to": [ { "type": "CUSTOMER" } ],
-                "body": dynamischBericht
-            });
+            Log.info(`🚀 Bericht verzenden naar Mirakl Inbox...`);
+            const uploadUrl = `${CONFIG.MIRAKL.INBOX_URL}/${thread.id}/message`;
 
-            // 2. Bouw het 'formulier' op
-            const form = new FormData();
-            form.append('message_input', new Blob([payload], { type: 'application/json' }));
-
-            // 3. Verzend het! (fetch regelt automatisch de form-data headers)
             const replyRes = await fetchMetRetry(uploadUrl, {
                 method: "POST",
                 headers: { 
                     "Authorization": CONFIG.MIRAKL.API_KEY, 
-                    "Accept": "application/json"
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
                 },
-                body: form
-            }, CONFIG.BOT.MAX_RETRIES, false); 
+                body: JSON.stringify({
+                    "to": [ { "type": "CUSTOMER" } ],
+                    "body": dynamischBericht
+                })
+            });
 
-            if (replyRes && replyRes.ok) {
+            if (replyRes.ok) {
                 Log.succes(`🎉 Return-link voor order ${orderNummer} succesvol naar de klant gestuurd!`);
                 GeheugenBeheerder.voegToe(orderNummer, thread.id);
             } else {
-                const errorText = replyRes ? await replyRes.text() : "Geen antwoord van server";
-                Log.fout(`❌ Fout bij uploaden naar thread ${thread.id}:`, errorText);
+                const errorText = await replyRes.text();
+                Log.fout(`❌ Fout bij uploaden (HTTP ${replyRes.status}):`, errorText);
             }
         }
-        
-        Log.succes(`Ronde voltooid! Totaal gevonden: ${gevonden}. Daarvan nieuw (nu verwerkt): ${nieuwVerwerkt}`);
-
     } catch (e) {
-        Log.fout("Er trad een netwerk- of scriptfout op:", e.message);
+        Log.fout("Er trad een fout op:", e.message);
     }
 }
 
 // ============================================================================
-// 7. WEBSERVER 
-// ============================================================================
-const PORT = process.env.PORT || 8000;
-const server = http.createServer((req, res) => {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('Obelink Retour Bot draait succesvol op de achtergrond!\n');
-});
-
-server.on('error', (e) => {
-    if (e.code === 'EADDRINUSE') {
-        // Poort in gebruik? Geen probleem
-    }
-});
-
-server.listen(PORT, () => {
-    console.log(`🚀 Server started: http://localhost:${PORT}`);
-});
-
-// ============================================================================
-// 8. INITIALISATIE & RUNNER
+// 6. INITIALISATIE & RUNNER
 // ============================================================================
 async function startBotApplicatie() {
     console.clear();
